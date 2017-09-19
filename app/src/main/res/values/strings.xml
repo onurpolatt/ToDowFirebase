@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">To do list</string>
+    <string name="action_settings">Ayarlar</string>
+    <string name="action_search">Ara</string>
+    <string name="app_title">Görevler</string>
+    <string name="action_insert">Ekle</string>
+    <string name="item_today">Bugün</string>
+    <string name="item_tomorrow">Yarın</string>
+    <string name="item_all">Hepsi</string>
+    <string name="task_title">Görev Başlığı</string>
+    <string name="task_content">Görev İçeriği</string>
+    <string name="pick_date">Tarih ve Zaman Seç</string>
+    <string name="no_task">Görev Mevcut Değil</string>
+    <string name="email_hint">E-Mail</string>
+    <string name="name_hint">İsim</string>
+    <string name="password_hint">Şifre</string>
+    <string name="button_login">Giriş</string>
+    <string name="button_signup">Hesap Oluşturun</string>
+    <string name="text_signup">Hesap oluşturun</string>
+    <string name="text_login">Giriş sayfasına gidin</string>
+</resources>
