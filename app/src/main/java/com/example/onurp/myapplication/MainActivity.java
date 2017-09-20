@@ -185,23 +185,19 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                         for (DataSnapshot child : dataSnapshot.getChildren())
                         {
                             Tasks task = child.getValue(Tasks.class);
-
-                            LocalDate localDate = LocalDate.now();
-                            String onlyDate=task.getEndDate().split(" ")[0];
-                            LocalDate ld=dateTimeFormatter.parseLocalDate(onlyDate);
-                            int days= Days.daysBetween(localDate,ld).getDays();
-
-                            if(days == 0){
-                                taskToday.add(task);
-                            }
-                            else if(days == 1){
-                                taskTomorrow.add(task);
-                            }
-                            else if(days >1 && days<7){
-                                taskThisWeek.add(task);
-                            }
-                            else{
-                                taskNextWeek.add(task);
+                            switch (getSectionGroup(task.getEndDate())){
+                                case "1":
+                                    taskToday.add(task);
+                                    break;
+                                case "2":
+                                    taskTomorrow.add(task);
+                                    break;
+                                case "3":
+                                    taskThisWeek.add(task);
+                                    break;
+                                case "4":
+                                    taskNextWeek.add(task);
+                                    break;
                             }
                         }
                         if(firstTime==null){
@@ -328,24 +324,25 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 String date=data.getStringExtra("date");
                 String imp=data.getStringExtra("imp");
                 String id=data.getStringExtra("id");
-
-                if(sectionGroup == "TODAY"){
-                    taskToday.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                    tabAdapter.updateData(sectionGroup,taskToday);
+                
+                switch (getSectionGroup(date)){
+                    case "1":
+                        taskToday.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        tabAdapter.updateData(sectionGroup,taskToday);
+                        break;
+                    case "2":
+                        taskTomorrow.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        tabAdapter.updateData(sectionGroup,taskTomorrow);
+                        break;
+                    case "3":
+                        taskThisWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        tabAdapter.updateData(sectionGroup,taskThisWeek);
+                        break;
+                    case "4":
+                        taskNextWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        tabAdapter.updateData(sectionGroup,taskNextWeek);
+                        break;
                 }
-                if(sectionGroup == "TOMORROW"){
-                    taskTomorrow.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                    tabAdapter.updateData(sectionGroup,taskTomorrow);
-                }
-                if(sectionGroup == "THIS WEEK"){
-                    taskThisWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                    tabAdapter.updateData(sectionGroup,taskThisWeek);
-                }
-                if(sectionGroup == "NEXT WEEK"){
-                    taskNextWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                    tabAdapter.updateData(sectionGroup,taskNextWeek);
-                }
-
 
                 databaseSections.child(uID).child(id).setValue(new Tasks(id,header,content,imp,date,sectionGroup));
                 viewPager.getAdapter().notifyDataSetChanged();
@@ -354,5 +351,32 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
             }
         }
+    }
+
+    public String getSectionGroup(String date){
+        String response="";
+
+        LocalDate localDate = LocalDate.now();
+        String newDate=date.split(" ")[0];
+        LocalDate ld=dateTimeFormatter.parseLocalDate(newDate);
+        int days= Days.daysBetween(localDate,ld).getDays();
+
+        if(days == 0){
+            Log.e(TAG,"COMPARE 0");
+            response="1";
+        }
+        else if(days == 1){
+            Log.e(TAG,"COMPARE 1");
+            response="2";
+        }
+        else if(days >1 && days<7){
+            Log.e(TAG,"COMPARE 1-7");
+            response="3";
+        }
+        else{
+            Log.e(TAG,"COMPARE 7>");
+            response="4";
+        }
+        return response;
     }
 }
