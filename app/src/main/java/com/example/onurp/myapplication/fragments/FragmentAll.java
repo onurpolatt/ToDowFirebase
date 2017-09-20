@@ -1,5 +1,6 @@
 package com.example.onurp.myapplication.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -39,6 +40,8 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
 
+import static com.example.onurp.myapplication.Sections.TODAY;
+
 /**
  * Created by onurp on 26.08.2017.
  */
@@ -58,12 +61,13 @@ public class FragmentAll extends android.support.v4.app.Fragment {
     private DatabaseReference databaseSections;
     private Unbinder unbinder;
     private String uID;
-
+    boolean yes = false;
+    boolean no =false;
     MyReceiver r;
 
     public void refresh() {
         Log.e(TAG,"REFRESH FRAGMENTALL");
-        sectionAdapter.notifyDataSetChanged();
+        //sectionAdapter.notifyDataSetChanged();
     }
 
     public FragmentAll() {
@@ -106,7 +110,7 @@ public class FragmentAll extends android.support.v4.app.Fragment {
 
         //Log.e(TAG,"TASKS SİZE: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskThisWeek.size());
         if(!emptyLists.contains("TODAY")){
-            sectionAdapter.addSection(new Sections(Sections.TODAY,taskToday,communication,getContext(),fragmentItemRemove));
+            sectionAdapter.addSection(new Sections(TODAY,taskToday,communication,getContext(),fragmentItemRemove));
         }
         if(!emptyLists.contains("TOMORROW")){
             sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemRemove));
@@ -174,9 +178,8 @@ public class FragmentAll extends android.support.v4.app.Fragment {
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
         public void deleteItem(String title,int position) {
-
-            databaseSections.child(uID).child(title).setValue(null);
-            sectionAdapter.notifyItemRemoved(position);
+                databaseSections.child(uID).child(title).setValue(null);
+                sectionAdapter.notifyItemRemoved(position);
         }
     };
 
@@ -186,4 +189,5 @@ public class FragmentAll extends android.support.v4.app.Fragment {
             FragmentAll.this.refresh();
         }
     }
+
 }

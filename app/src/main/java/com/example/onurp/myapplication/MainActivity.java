@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
             @Override
             public void onPageScrollStateChanged(int arg0) {
+
             }
         });
 
@@ -214,18 +215,18 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         );
         return true;
     }
-
+/*
     public void getTaskDataFromDb()
     {
         dbManager db=new dbManager(this);
 
         db.open();
         task.clear();
-        /*db.insertTasks("merhaba","a","1","2017-09-11",1);
+        db.insertTasks("merhaba","a","1","2017-09-11",1);
         db.insertTasks("merhaba","b","1","2017-09-11",1);
         db.insertTasks("merhaba","c","1","2017-09-12",2);
         db.insertTasks("merhaba","d","1","2017-09-15",3);
-        db.insertTasks("merhaba","e","1","2017-09-19",4);*/
+        db.insertTasks("merhaba","e","1","2017-09-19",4);
 
         task = db.getAllTasks();
 
@@ -239,10 +240,10 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             }
         });
 
-       /* for(int i=0;i<task.size();i++){
+        for(int i=0;i<task.size();i++){
             System.out.println("TARİH: "+task.get(i).endDate+"CONTENT:"+task.get(i).content);
             Log.d(TAG, task.toString());
-        } */
+        }
         count=0;
         for(int i=0;i<sHeaders.size();i++){
             for(int j=count;j<task.size();j++){
@@ -268,11 +269,9 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         }
     }
 
-
-
-/*
-
 */
+
+
 
 
     @Override
@@ -324,9 +323,27 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 String date=data.getStringExtra("date");
                 String imp=data.getStringExtra("imp");
                 String id=data.getStringExtra("id");
+
+                if(sectionGroup == "TODAY"){
+                    taskToday.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                    tabAdapter.updateData(sectionGroup,taskToday);
+                }
+                if(sectionGroup == "TOMORROW"){
+                    taskTomorrow.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                    tabAdapter.updateData(sectionGroup,taskTomorrow);
+                }
+                if(sectionGroup == "THIS WEEK"){
+                    taskThisWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                    tabAdapter.updateData(sectionGroup,taskThisWeek);
+                }
+                if(sectionGroup == "NEXT WEEK"){
+                    taskNextWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                    tabAdapter.updateData(sectionGroup,taskNextWeek);
+                }
+
+
                 databaseSections.child(uID).child(id).setValue(new Tasks(id,header,content,imp,date,sectionGroup));
-                task.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                Log.e(TAG,"NOTIFY");
+                viewPager.getAdapter().notifyDataSetChanged();
             }
             if (resultCode == Activity.RESULT_CANCELED) {
 

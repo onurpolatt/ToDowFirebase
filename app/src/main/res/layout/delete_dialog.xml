@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp" >
+
+<TextView android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="45dp"
+        android:text="Görevi silmek istiyormusunuz?"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+<Button android:id="@+id/nobtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/primary"
+        android:layout_alignBaseline="@+id/yesbtn"
+        android:layout_alignBottom="@+id/yesbtn"
+        android:layout_alignRight="@+id/textView1"
+        android:layout_marginRight="38dp"
+        android:text="No"
+        android:textColor="@color/primary_text"/>
+
+<Button android:id="@+id/yesbtn"
+        android:layout_width="wrap_content"
+        android:background="@color/primary"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView1"
+        android:layout_below="@+id/textView1"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="20dp"
+        android:text="Yes"
+        android:textColor="@color/primary_text"/>
+
+</RelativeLayout>

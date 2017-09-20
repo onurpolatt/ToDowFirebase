@@ -10,6 +10,7 @@ import com.example.onurp.myapplication.fragments.FragmentAll;
 import com.example.onurp.myapplication.fragments.FragmentThisWeek;
 import com.example.onurp.myapplication.fragments.FragmentToday;
 import com.example.onurp.myapplication.fragments.FragmentTomorrow;
+import com.example.onurp.myapplication.fragments.deleteDialog;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import static android.R.attr.fragment;
  * Created by onurp on 26.08.2017.
  */
 
-public class TabAdapter extends FragmentStatePagerAdapter {
+public class TabAdapter extends FragmentStatePagerAdapter  {
     public int tabCount;
     public String userID;
     public ArrayList<Tasks> today=new ArrayList<>();
@@ -56,8 +57,31 @@ public class TabAdapter extends FragmentStatePagerAdapter {
         }
     }
 
+    public void updateData(String title,ArrayList<Tasks> newTaskList){
+        switch (title){
+            case "TODAY":
+                this.today=newTaskList;
+                notifyDataSetChanged();
+            case "TOMORROW":
+                this.tomorrow=newTaskList;
+                notifyDataSetChanged();
+            case "THIS WEEK":
+                this.thisw=newTaskList;
+                notifyDataSetChanged();
+            case "NEXT WEEK":
+                this.nextw=newTaskList;
+                notifyDataSetChanged();
+            default:
+                notifyDataSetChanged();
+        }
+    }
+
     @Override
     public int getCount() {
         return tabCount;
+    }
+
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
     }
 }

@@ -48,7 +48,7 @@ public class FragmentToday extends android.support.v4.app.Fragment {
 
     public void refresh() {
         Log.e(TAG,"REFRESH FRAGMENT TODAY");
-        sectionAdapter.notifyDataSetChanged();
+        //sectionAdapter.notifyDataSetChanged();
     }
 
     public FragmentToday(){
