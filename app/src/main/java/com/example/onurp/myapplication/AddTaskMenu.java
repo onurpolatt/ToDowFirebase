@@ -222,19 +222,15 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
         Log.e(TAG,"TARİHLER"+localDate+"/////"+ld);
 
         if(days == 0){
-            Log.e(TAG,"COMPARE 0");
             response="TODAY";
         }
         else if(days == 1){
-            Log.e(TAG,"COMPARE 1");
             response="TOMORROW";
         }
         else if(days >1 && days<7){
-            Log.e(TAG,"COMPARE 1-7");
             response="THIS WEEK";
         }
         else{
-            Log.e(TAG,"COMPARE 7>");
             response="NEXT WEEK";
         }
         return response;

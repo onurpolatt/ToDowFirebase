@@ -59,20 +59,25 @@ public class TabAdapter extends FragmentStatePagerAdapter  {
 
     public void updateData(String title,ArrayList<Tasks> newTaskList){
         switch (title){
-            case "TODAY":
+            case "1":
                 this.today=newTaskList;
                 notifyDataSetChanged();
-            case "TOMORROW":
+                break;
+            case "2":
                 this.tomorrow=newTaskList;
                 notifyDataSetChanged();
-            case "THIS WEEK":
+                break;
+            case "3":
                 this.thisw=newTaskList;
                 notifyDataSetChanged();
-            case "NEXT WEEK":
+                break;
+            case "4":
                 this.nextw=newTaskList;
                 notifyDataSetChanged();
+                break;
             default:
                 notifyDataSetChanged();
+                break;
         }
     }
 

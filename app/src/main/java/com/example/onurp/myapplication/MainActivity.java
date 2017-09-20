@@ -324,28 +324,31 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 String date=data.getStringExtra("date");
                 String imp=data.getStringExtra("imp");
                 String id=data.getStringExtra("id");
-                
-                switch (getSectionGroup(date)){
+
+                String gsGroup = getSectionGroup(date);
+
+                switch (gsGroup){
                     case "1":
                         taskToday.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                        tabAdapter.updateData(sectionGroup,taskToday);
+                        tabAdapter.updateData(gsGroup,taskToday);
                         break;
                     case "2":
                         taskTomorrow.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                        tabAdapter.updateData(sectionGroup,taskTomorrow);
+                        tabAdapter.updateData(gsGroup,taskTomorrow);
                         break;
                     case "3":
+                        Log.e(TAG,"TASKK HIS WEEK ADD");
                         taskThisWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                        tabAdapter.updateData(sectionGroup,taskThisWeek);
+                        tabAdapter.updateData(gsGroup,taskThisWeek);
                         break;
                     case "4":
+                        Log.e(TAG,"TASKK NEXT WEEK ADD");
                         taskNextWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
-                        tabAdapter.updateData(sectionGroup,taskNextWeek);
+                        tabAdapter.updateData(gsGroup,taskNextWeek);
                         break;
                 }
 
                 databaseSections.child(uID).child(id).setValue(new Tasks(id,header,content,imp,date,sectionGroup));
-                viewPager.getAdapter().notifyDataSetChanged();
             }
             if (resultCode == Activity.RESULT_CANCELED) {
 
