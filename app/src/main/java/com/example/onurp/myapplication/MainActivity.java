@@ -47,6 +47,11 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
 
@@ -72,7 +77,6 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener{
     public Toolbar toolbar;
     public TabAdapter tabAdapter;
-    public CustomAdapter adapter;
     public ViewPager viewPager;
     public dbManager db;
     public dbHandler dHandler;
@@ -81,17 +85,15 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
     public ArrayList<Tasks> taskNextWeek=new ArrayList<>();
-    public ArrayList<Tasks> sHeaders=new ArrayList<>();
-    public ArrayList<Tasks> combinedList=new ArrayList<>();
     private static final String TAG = "AddTaskMenu";
     private Boolean firstTime = null;
-    public int count;
     private FirebaseUser user;
     private String uID;
     private FirebaseAuth auth;
-    public boolean sectionFirstAttempt=true;
     private DatabaseReference databaseSections;
     public  ProgressDialog progressDialog;
+    public DateTimeFormatter dateTimeFormatter= DateTimeFormat.forPattern("yyyy-MM-dd");
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -176,27 +178,30 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Giriş yapılıyor...");
         progressDialog.show();
-        databaseSections.child(uID).orderByChild("sSectionGroup").addListenerForSingleValueEvent(
+        databaseSections.child(uID).orderByChild("endDate").addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot child : dataSnapshot.getChildren())
                         {
                             Tasks task = child.getValue(Tasks.class);
-                            switch (task.getsSectionGroup()){
-                                case "TODAY":
-                                    taskToday.add(task);
-                                    break;
-                                case "TOMORROW":
-                                    taskTomorrow.add(task);
-                                    break;
-                                case "THIS WEEK":
-                                    taskThisWeek.add(task);
-                                    break;
-                                case "NEXT WEEK":
-                                    taskNextWeek.add(task);
-                                    break;
-                                default: break;
+
+                            LocalDate localDate = LocalDate.now();
+                            String onlyDate=task.getEndDate().split(" ")[0];
+                            LocalDate ld=dateTimeFormatter.parseLocalDate(onlyDate);
+                            int days= Days.daysBetween(localDate,ld).getDays();
+
+                            if(days == 0){
+                                taskToday.add(task);
+                            }
+                            else if(days == 1){
+                                taskTomorrow.add(task);
+                            }
+                            else if(days >1 && days<7){
+                                taskThisWeek.add(task);
+                            }
+                            else{
+                                taskNextWeek.add(task);
                             }
                         }
                         if(firstTime==null){
