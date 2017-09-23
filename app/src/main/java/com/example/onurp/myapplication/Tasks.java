@@ -2,6 +2,14 @@ package com.example.onurp.myapplication;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by onurp on 25.08.2017.
@@ -18,19 +26,9 @@ public class Tasks implements Parcelable {
     public Integer intIdRow,intIdSection;
     public boolean isRow;
 
-
     public Tasks(){
 
     }
-    public  Tasks  (String header,String content,String importanceLevel,String endDate,Integer sectionGroup){
-        this.content=content;
-        this.header=header;
-        this.endDate=endDate;
-        this.importanceLevel=importanceLevel;
-        this.sectionGroup=sectionGroup;
-        this.isRow=true;
-    }
-
 
     public  Tasks  (Integer id,String header,String content,String importanceLevel,String endDate,Integer sectionGroup){
         this.intIdRow=id;
@@ -53,11 +51,6 @@ public class Tasks implements Parcelable {
     }
 
 
-    public  Tasks (String id,String sectionName){
-        this.idSection=id;
-        this.sectionName=sectionName;
-        this.isRow=false;
-    }
 
     public  Tasks (Integer id,String sectionName){
         this.intIdSection=id;
@@ -109,17 +102,6 @@ public class Tasks implements Parcelable {
         return sectionName;
     }
 
-    public void setSectionName(String sectionName) {
-        this.sectionName = sectionName;
-    }
-
-    public Integer getSectionGroup() {
-        return sectionGroup;
-    }
-
-    public void setSectionGroup(Integer sectionGroup) {
-        this.sectionGroup = sectionGroup;
-    }
 
     public String getContent() {
         return content;
@@ -157,6 +139,32 @@ public class Tasks implements Parcelable {
         return isRow;
     }
 
+    public static String getSectionGroup(String date){
+        String response="";
+        DateTimeFormatter dateTimeFormatter= DateTimeFormat.forPattern("yyyy-MM-dd");
+
+        LocalDate localDate = LocalDate.now();
+        String newDate=date.split(" ")[0];
+        LocalDate ld=dateTimeFormatter.parseLocalDate(newDate);
+        int days= Days.daysBetween(localDate,ld).getDays();
+        Log.e(TAG,"İKİ TARİH ARASI GÜN SAYISI"+days);
+        Log.e(TAG,"TARİHLER"+localDate+"/////"+ld);
+
+        if(days == 0){
+            response="TODAY";
+        }
+        else if(days == 1){
+            response="TOMORROW";
+        }
+        else if(days >1 && days<7){
+            response="THIS WEEK";
+        }
+        else{
+            response="NEXT WEEK";
+        }
+        return response;
+    }
+
     public Tasks(Parcel in){
 
         content=in.readString();
@@ -167,6 +175,7 @@ public class Tasks implements Parcelable {
         isRow=in.readInt() == 1;
         sSectionGroup=in.readString();
     }
+
 
     @Override
     public int describeContents() {

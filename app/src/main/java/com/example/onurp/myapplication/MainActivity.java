@@ -14,6 +14,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
@@ -21,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -37,6 +39,8 @@ import com.example.onurp.myapplication.auth.SignupActivity;
 import com.example.onurp.myapplication.database.dbHandler;
 import com.example.onurp.myapplication.database.dbManager;
 import com.example.onurp.myapplication.fragments.FragmentAll;
+import com.example.onurp.myapplication.fragments.ObserverInterface;
+import com.example.onurp.myapplication.interfaces.MainItemRemove;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -74,7 +78,7 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
  * Created by onurp on 17.08.2017.
  */
 
-public class MainActivity extends AppCompatActivity implements ActionBar.TabListener{
+public class MainActivity extends AppCompatActivity implements ActionBar.TabListener,MainItemRemove{
     public Toolbar toolbar;
     public TabAdapter tabAdapter;
     public ViewPager viewPager;
@@ -93,7 +97,8 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     private DatabaseReference databaseSections;
     public  ProgressDialog progressDialog;
     public DateTimeFormatter dateTimeFormatter= DateTimeFormat.forPattern("yyyy-MM-dd");
-
+    public ArrayList<ObserverInterface> mObservers;
+    private Tasks tasks;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         uID = user.getUid();
-
+        tasks = new Tasks();
         fetchTasks();
         /*dHandler=new dbHandler(this);
         dHandler.getWritableDatabase();*/
@@ -278,6 +283,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.item, menu);
+
         return true;
     }
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -297,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
         }
     }
+
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
@@ -364,6 +371,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         LocalDate ld=dateTimeFormatter.parseLocalDate(newDate);
         int days= Days.daysBetween(localDate,ld).getDays();
 
+
         if(days == 0){
             Log.e(TAG,"COMPARE 0");
             response="1";
@@ -381,5 +389,29 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             response="4";
         }
         return response;
+    }
+
+    @Override
+    public void itemRemoved(String tag, int position) {
+        switch (tag){
+            case "TODAY":
+                taskToday.remove(position);
+                tabAdapter.updateData("1",taskToday);
+                break;
+            case "TOMORROW":
+                taskTomorrow.remove(position);
+                tabAdapter.updateData("2",taskTomorrow);
+                break;
+            case "THIS WEEK":
+                taskThisWeek.remove(position);
+                tabAdapter.updateData("3",taskThisWeek);
+                break;
+            case "NEXT WEEK":
+                taskNextWeek.remove(position);
+                tabAdapter.updateData("4",taskNextWeek);
+                break;
+            default:
+                break;
+        }
     }
 }

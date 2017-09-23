@@ -78,7 +78,7 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
     public Date cDate;
     public DateTimeFormatter dateTimeFormatter=DateTimeFormat.forPattern("yyyy-MM-dd");
     private DatabaseReference databaseSections;
-
+    public Tasks task;
 
     private static final String TAG = "AddTaskMenu";
 
@@ -91,6 +91,7 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         databaseSections = FirebaseDatabase.getInstance().getReference("sections");
+        task=new Tasks();
         cDate=new Date();
     }
 
@@ -200,7 +201,7 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
             int idx = radioGroup.indexOfChild(radioButton);
             Log.e(TAG,"CONTENT"+contentEditText.getText().toString());
             Intent returnIntent = new Intent();
-            returnIntent.putExtra("sGroup",getSectionGroup(showDate.getText().toString()));
+            returnIntent.putExtra("sGroup",Tasks.getSectionGroup(showDate.getText().toString()));
             returnIntent.putExtra("content",contentEditText.getText().toString());
             returnIntent.putExtra("header",tHeader.getText().toString());
             returnIntent.putExtra("date",showDate.getText().toString());
@@ -209,30 +210,5 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
             setResult(Activity.RESULT_OK,returnIntent);
             finish();
         }
-    }
-
-    public String getSectionGroup(String date){
-        String response="";
-
-        LocalDate localDate = LocalDate.now();
-        String newDate=date.split(" ")[0];
-        LocalDate ld=dateTimeFormatter.parseLocalDate(newDate);
-        int days= Days.daysBetween(localDate,ld).getDays();
-        Log.e(TAG,"İKİ TARİH ARASI GÜN SAYISI"+days);
-        Log.e(TAG,"TARİHLER"+localDate+"/////"+ld);
-
-        if(days == 0){
-            response="TODAY";
-        }
-        else if(days == 1){
-            response="TOMORROW";
-        }
-        else if(days >1 && days<7){
-            response="THIS WEEK";
-        }
-        else{
-            response="NEXT WEEK";
-        }
-        return response;
     }
 }

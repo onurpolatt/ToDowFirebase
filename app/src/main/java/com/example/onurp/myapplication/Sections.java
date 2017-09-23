@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -17,6 +18,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.example.onurp.myapplication.fragments.FragmentAll;
+import com.example.onurp.myapplication.fragments.ObserverInterface;
+import com.example.onurp.myapplication.interfaces.FilterableSection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +39,7 @@ import static java.security.AccessController.getContext;
  * Created by onurp on 16.09.2017.
  */
 
-public class Sections extends StatelessSection {
+public class Sections extends StatelessSection implements FragmentAll.FilterableSection {
     public final static int TODAY = 0;
     public final static int TOMORROW = 1;
     public final static int THIS_WEEK = 2;
@@ -47,6 +52,7 @@ public class Sections extends StatelessSection {
     String title;
     ArrayList<Tasks> list=new ArrayList<>();
     int lastPosition = -1;
+    ArrayList<Tasks> filteredList;
 
    public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemRemove itemRemove) {
         super(new SectionParameters.Builder(R.layout.list_content)
@@ -58,41 +64,70 @@ public class Sections extends StatelessSection {
        mItemRemove=itemRemove;
        this.context = context;
 
+
+
         switch (topic) {
             case TODAY:
                     this.title = "TODAY";
                     this.list = tasks;
+                this.filteredList = new ArrayList<>(list);
                     break;
             case TOMORROW:
                     this.title = "TOMORROW";
                     this.list = tasks;
+                this.filteredList = new ArrayList<>(list);
                     break;
             case THIS_WEEK:
                     this.title = "THIS WEEK";
                     this.list = tasks;
+                this.filteredList = new ArrayList<>(list);
                     break;
             case NEXT_WEEK:
                     this.title = "NEXT WEEK";
                     this.list = tasks;
+                this.filteredList = new ArrayList<>(list);
                     break;
             default:
                 break;
         }
 
+
+
     }
+
+    @Override
+    public void filter(String query) {
+        if (TextUtils.isEmpty(query)) {
+            filteredList = new ArrayList<>(list);
+            this.setVisible(true);
+        }
+        else {
+            filteredList.clear();
+            for (Tasks value : list) {
+                if (value.getHeader().toLowerCase().contains(query.toLowerCase())) {
+                    Log.e("ONEMLİ","BULUNAN VERİ"+value.getHeader());
+                    filteredList.add(value);
+                }
+            }
+
+            this.setVisible(!filteredList.isEmpty());
+        }
+    }
+
+
+
 
     public interface FragmentCommunication {
         void respond(int position);
     }
 
     public interface FragmentItemRemove {
-        void deleteItem(String tag,int position);
+        void deleteItem(String id,String tag ,int position,int listPosition);
     }
-
 
     @Override
     public int getContentItemsTotal() {
-        return  expanded ? list.size() : 0;
+        return filteredList.size();
     }
 
     @Override
@@ -104,13 +139,15 @@ public class Sections extends StatelessSection {
     public void onBindItemViewHolder(RecyclerView.ViewHolder holder, final int position) {
        final ItemViewHolder h = (ItemViewHolder) holder;
 
-        Tasks task=list.get(position);
+        Tasks task=filteredList.get(position);
 
 
         h.tHeader.setText(task.getHeader());
         h.tContent.setText(task.getContent());
         h.tDate.setText(task.getEndDate());
+
         final String id = task.getIdRow();
+        final String sGroup = task.sSectionGroup;
         h.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,12 +160,12 @@ public class Sections extends StatelessSection {
         h.rootView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(context, "Uzun Tıklanılan item numarası "+h.getAdapterPosition(), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Uzun Tıklanılan item numarası "+position, Toast.LENGTH_LONG).show();
 
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
                 alertDialog.setTitle("Görev Sil");
                 alertDialog.setMessage("Silmek istiyor musunuz? ");
-                alertDialog.setPositiveButton("CANCEL", new DialogInterface.OnClickListener() {
+                alertDialog.setPositiveButton("NO", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(context, "Silme işlemi iptal", Toast.LENGTH_LONG).show();
@@ -138,8 +175,8 @@ public class Sections extends StatelessSection {
                 alertDialog.setNegativeButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        list.remove(position);
-                        h.itemRemove.deleteItem(id,h.getAdapterPosition());
+                        filteredList.remove(position);
+                        h.itemRemove.deleteItem(id,sGroup,h.getAdapterPosition(),position);
                     }
                 });
 
@@ -184,7 +221,9 @@ public class Sections extends StatelessSection {
             });
 
     }
-     class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+
+    class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @BindView(R.id.txtSection)
         TextView sectionHeader;
         @BindView(R.id.imgArrow)ImageView imgArrow;
@@ -223,10 +262,11 @@ public class Sections extends StatelessSection {
         }
 
         @Override public boolean onLongClick(View v) {
-            itemRemove.deleteItem(title,getAdapterPosition());
+            //itemRemove.deleteItem(title,getAdapterPosition());
             return true;
         }
     }
+
 
 
 }

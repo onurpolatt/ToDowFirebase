@@ -39,6 +39,8 @@ public class TabAdapter extends FragmentStatePagerAdapter  {
         this.thisw=thisw;
         this.nextw=nextw;
     }
+
+
     @Override
     public Fragment getItem(int position) {
         Bundle bundle = new Bundle();

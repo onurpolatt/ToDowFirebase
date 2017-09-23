@@ -9,11 +9,15 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -22,9 +26,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.onurp.myapplication.MainActivity;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
+import com.example.onurp.myapplication.interfaces.MainItemRemove;
+import com.google.android.gms.common.data.DataBufferObserver;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,10 +39,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Observable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.github.luizgrp.sectionedrecyclerviewadapter.Section;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
@@ -46,17 +55,18 @@ import static com.example.onurp.myapplication.Sections.TODAY;
  * Created by onurp on 26.08.2017.
  */
 
-public class FragmentAll extends android.support.v4.app.Fragment {
+public class FragmentAll extends android.support.v4.app.Fragment implements SearchView.OnQueryTextListener{
     private static final String TAG = "FragmentAll";
     @BindView(R.id.lvToDoList)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
+    MainItemRemove mainItemRemove;
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
     public ArrayList<Tasks> taskNextWeek=new ArrayList<>();
 
     public ArrayList<String> emptyLists=new ArrayList<>();
-
+    public ArrayList<Tasks> combinedLists=new ArrayList<>();
     private SectionedRecyclerViewAdapter sectionAdapter;
     private DatabaseReference databaseSections;
     private Unbinder unbinder;
@@ -64,6 +74,7 @@ public class FragmentAll extends android.support.v4.app.Fragment {
     boolean yes = false;
     boolean no =false;
     MyReceiver r;
+    private static FragmentAll INSTANCE = null;
 
     public void refresh() {
         Log.e(TAG,"REFRESH FRAGMENTALL");
@@ -73,9 +84,17 @@ public class FragmentAll extends android.support.v4.app.Fragment {
     public FragmentAll() {
     }
 
+    public static FragmentAll getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new FragmentAll();
+        }
+        return INSTANCE;
+    }
+
 
     public static FragmentAll newInstance(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw,String uID) {
         FragmentAll result = new FragmentAll();
+
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("TODAY",today);
         bundle.putParcelableArrayList("TOMORROW",tomorrow);
@@ -86,9 +105,17 @@ public class FragmentAll extends android.support.v4.app.Fragment {
         result.setArguments(bundle);
         return result;
     }
+
+    @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+        mainItemRemove = (MainItemRemove) context;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         Bundle bundle = this.getArguments();
         taskToday = bundle.getParcelableArrayList("TODAY");
         taskTomorrow = bundle.getParcelableArrayList("TOMORROW");
@@ -106,7 +133,10 @@ public class FragmentAll extends android.support.v4.app.Fragment {
         sectionAdapter = new SectionedRecyclerViewAdapter();
         checkEmptySections();
 
-
+        combinedLists.addAll(taskToday);
+        combinedLists.addAll(taskTomorrow);
+        combinedLists.addAll(taskThisWeek);
+        combinedLists.addAll(taskNextWeek);
 
         //Log.e(TAG,"TASKS SİZE: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskThisWeek.size());
         if(!emptyLists.contains("TODAY")){
@@ -130,6 +160,33 @@ public class FragmentAll extends android.support.v4.app.Fragment {
 
         return view;
     }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(this);
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        Log.e("ONEMLİ","SECTİON DEĞERLERİ"+sectionAdapter.getSectionsMap().values());
+        for (Section section : sectionAdapter.getSectionsMap().values()) {
+            if (section instanceof FilterableSection) {
+                Log.e("ONEMLİ","FİLTER CALİSTİ");
+                ((FilterableSection)section).filter(query);
+            }
+        }
+        sectionAdapter.notifyDataSetChanged();
+
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
 
     @Override
     public void onResume() {
@@ -177,8 +234,9 @@ public class FragmentAll extends android.support.v4.app.Fragment {
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
-        public void deleteItem(String title,int position) {
-                databaseSections.child(uID).child(title).setValue(null);
+        public void deleteItem(String id,String title,int position,int listPosition) {
+                databaseSections.child(uID).child(id).setValue(null);
+                mainItemRemove.itemRemoved(title,listPosition);
                 sectionAdapter.notifyItemRemoved(position);
         }
     };
@@ -190,4 +248,13 @@ public class FragmentAll extends android.support.v4.app.Fragment {
         }
     }
 
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    public interface FilterableSection {
+        void filter(String query);
+    }
 }
