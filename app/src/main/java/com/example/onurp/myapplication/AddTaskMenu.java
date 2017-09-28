@@ -63,7 +63,6 @@ import static com.example.onurp.myapplication.R.menu.item;
 public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener,DatePickerDialog.OnDateSetListener{
     @BindView(R.id.contentEditText)EditText contentEditText;
     @BindView(R.id.buttonSetDate)Button pickerButton;
-    @BindView(R.id.headerEditText)EditText tHeader;
     @BindView(R.id.radioHigh)RadioButton highPriority;
     @BindView(R.id.radioNormal)RadioButton normalPriority;
     @BindView(R.id.radioLow)RadioButton lowPriority;
@@ -192,7 +191,6 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
     @OnClick(R.id.fab)
     public void submitForm(){
         if( contentEditText.getText().toString().trim().equals("")
-                || tHeader.getText().toString().trim().equals("")
                 || showDate.getText().toString().trim().equals("")){
             snackbar.make(layout,"Alanları eksiksiz doldurunuz!"+Integer.toString(radioGroup.getCheckedRadioButtonId()),Snackbar.LENGTH_SHORT).show();
         }else{
@@ -203,7 +201,6 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
             Intent returnIntent = new Intent();
             returnIntent.putExtra("sGroup",Tasks.getSectionGroup(showDate.getText().toString()));
             returnIntent.putExtra("content",contentEditText.getText().toString());
-            returnIntent.putExtra("header",tHeader.getText().toString());
             returnIntent.putExtra("date",showDate.getText().toString());
             returnIntent.putExtra("imp",Integer.toString(idx));
             returnIntent.putExtra("id",databaseSections.push().getKey());

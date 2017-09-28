@@ -5,12 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
-
-
-
-
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
@@ -63,31 +57,13 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:gravity="center"
                     android:layout_margin="@dimen/items_margin_top">
-
-                    <ImageView
-                        android:id="@+id/imgEditText"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginTop="20dp"
-                        android:src="@drawable/ic_text_format_black_48dp" />
-
-                    <EditText
-                        android:id="@+id/headerEditText"
-                        style="@style/AppTheme"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/items_margin_left"
-                        android:layout_marginTop="@dimen/items_margin_top"
-                        android:layout_toRightOf="@+id/imgEditText"
-                        android:hint="@string/task_title"
-                        android:textColor="@color/secondary_text" />
 
                     <ImageView
                         android:id="@+id/imgEditTextContent"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
-                        android:layout_below="@+id/imgEditText"
                         android:layout_marginTop="20dp"
                         android:src="@drawable/ic_mode_edit_black_24dp" />
 
@@ -96,10 +72,10 @@
                         style="@style/AppTheme"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/headerEditText"
+                        android:layout_below="@+id/viewBt"
                         android:layout_marginLeft="@dimen/items_margin_left"
                         android:layout_marginTop="@dimen/items_margin_top"
-                        android:layout_toRightOf="@+id/imgEditText"
+                        android:layout_toRightOf="@+id/imgEditTextContent"
                         android:hint="@string/task_content"
                         android:textColor="@color/secondary_text" />
 
@@ -179,10 +155,6 @@
 
                 </RelativeLayout>
             </LinearLayout>
-
         </LinearLayout>
-
-
-
 
 </android.support.design.widget.CoordinatorLayout>

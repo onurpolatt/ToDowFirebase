@@ -9,6 +9,10 @@
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 
+    <color name="color_primary">#2196F3</color>
+    <color name="color_primary_dark">#1976D2</color>
+    <color name="accent_color">#536DFE</color>
+
     <color name="bg_login">#26ae90</color>
     <color name="bg_register">#2e3237</color>
     <color name="bg_main">#428bca</color>

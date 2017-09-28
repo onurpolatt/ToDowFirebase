@@ -49,10 +49,6 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     }
 
     public class RowViewHolder extends RecyclerView.ViewHolder{
-        @BindView(R.id.impLevel)
-        View impLevel;
-        @BindView(R.id.txtHeader)
-        TextView tHeader;
         @BindView(R.id.txtContent)
         TextView tContent;
         @BindView(R.id.endDate)
@@ -78,28 +74,15 @@ public class CustomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public int getItemViewType(int position) {
         super.getItemViewType(position);
         Tasks item = task.get(position);
-        if(!item.isRow()) {
-            if(task.size()==0){
-                return 2; //empty view için
-            }
-            return 0;//section için
-        } else {
-            return 1;//task için
-        }
+        return 1;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         Tasks tasks=task.get(position);
-        if(tasks.isRow()) {
-            RowViewHolder h = (RowViewHolder) holder;
-            h.tHeader.setText(tasks.getHeader());
-            h.tContent.setText(tasks.getContent());
-            h.tDate.setText(tasks.getEndDate());
-        } else {
-            SectionViewHolder h = (SectionViewHolder) holder;
-            h.sectionHeader.setText(tasks.getSectionName());
-        }
+        RowViewHolder h = (RowViewHolder) holder;
+        h.tContent.setText(tasks.getContent());
+        h.tDate.setText(tasks.getEndDate());
     }
 
     @Override

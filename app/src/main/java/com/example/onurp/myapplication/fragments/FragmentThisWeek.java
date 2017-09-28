@@ -22,6 +22,10 @@ import android.widget.TextView;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
+import com.example.onurp.myapplication.interfaces.MainFavRemove;
+import com.example.onurp.myapplication.interfaces.MainItemRemove;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -35,25 +39,35 @@ import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapt
 
 public class FragmentThisWeek extends android.support.v4.app.Fragment {
     private static final String TAG = "FragmentThisWeek";
+    private static final String EMPTY_TEXT ="Favori Görev Yok";
     @BindView(R.id.recylerviewThisWeek)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
+    MainFavRemove mainFavRemove;
+    MainItemRemove mainItemRemove;
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
     private SectionedRecyclerViewAdapter sectionAdapter;
-    MyReceiver r;
+    private DatabaseReference databaseSections;
+    private String uID;
 
-    public void refresh() {
-        Log.e(TAG,"REFRESH FRAGMENT THIS WEEK");
-        sectionAdapter.notifyDataSetChanged();
-    }
+
 
     public FragmentThisWeek(){
 
     }
 
-    public static FragmentThisWeek newInstance(ArrayList<Tasks> thisw) {
+    @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+        mainItemRemove = (MainItemRemove) context;
+        mainFavRemove = (MainFavRemove) context;
+    }
+
+
+    public static FragmentThisWeek newInstance(ArrayList<Tasks> thisw,String uID) {
         FragmentThisWeek result = new FragmentThisWeek();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("THISW",thisw);
+        bundle.putString("ID",uID);
         Log.e(TAG,"TASKS NEW INSTANCE: "+thisw.size());
         result.setArguments(bundle);
         return result;
@@ -65,6 +79,7 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
         setHasOptionsMenu(true);
         Bundle bundle = this.getArguments();
         taskThisWeek = bundle.getParcelableArrayList("THISW");
+        uID=bundle.getString("ID");
         Log.e(TAG,"TASKS THIS WEEK SİZE: "+taskThisWeek.size());
     }
 
@@ -81,9 +96,9 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
         ButterKnife.bind(this,view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         sectionAdapter = new SectionedRecyclerViewAdapter();
-        sectionAdapter.addSection(new Sections(Sections.THIS_WEEK,taskThisWeek,communication,getContext(),fragmentItemRemove));
+        sectionAdapter.addSection(new Sections(Sections.FAVOURITE,taskThisWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
         recyclerView.setAdapter(sectionAdapter);
-
+        databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
         checkEmptyStatement();
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -93,15 +108,11 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        r = new FragmentThisWeek.MyReceiver();
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(r,
-                new IntentFilter("REFRESH"));
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(r);
     }
 
     public void checkEmptyStatement(){
@@ -112,12 +123,18 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
         else {
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
+            emptyText.setText(EMPTY_TEXT);
         }
     }
 
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(int position) {
+        public void respond(Tasks task,boolean isChecked) {
+            if(isChecked){
+                task.setSelected(isChecked);
+            } else {
+                task.setSelected(isChecked);
+            }
             sectionAdapter.notifyDataSetChanged();
         }
 
@@ -125,16 +142,26 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
-        public void deleteItem(String id,String title,int position,int listPosition) {
+        public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
+            databaseSections.child(uID).child(id).setValue(null);
+            mainItemRemove.itemRemoved(task,title,listPosition);
             sectionAdapter.notifyItemRemoved(position);
         }
     };
 
-    private class MyReceiver extends BroadcastReceiver {
+    Sections.FavouriteItem favouriteItem = new Sections.FavouriteItem() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            FragmentThisWeek.this.refresh();
+        public void addFavItem(Tasks favTask,String id) {
+
         }
-    }
+
+        @Override
+        public void deleteFavItem(int position,Tasks task,String id) {
+            databaseSections.child(uID).child(id).child("isFavourite").setValue(false);
+            mainFavRemove.favRemove(task);
+            sectionAdapter.notifyItemRemoved(position);
+        }
+    };
+
 
 }

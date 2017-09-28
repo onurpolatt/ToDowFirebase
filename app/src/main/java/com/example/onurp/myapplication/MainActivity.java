@@ -2,44 +2,26 @@ package com.example.onurp.myapplication;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.SQLException;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import com.example.onurp.myapplication.adapters.CustomAdapter;
 import com.example.onurp.myapplication.adapters.TabAdapter;
 import com.example.onurp.myapplication.auth.LoginActivity;
-import com.example.onurp.myapplication.auth.SignupActivity;
 import com.example.onurp.myapplication.database.dbHandler;
 import com.example.onurp.myapplication.database.dbManager;
-import com.example.onurp.myapplication.fragments.FragmentAll;
 import com.example.onurp.myapplication.fragments.ObserverInterface;
+import com.example.onurp.myapplication.interfaces.MainFavAdd;
+import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,8 +29,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import org.joda.time.Days;
@@ -56,35 +36,21 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
-import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
-import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
-import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
 
 /**
  * Created by onurp on 17.08.2017.
  */
 
-public class MainActivity extends AppCompatActivity implements ActionBar.TabListener,MainItemRemove{
-    public Toolbar toolbar;
+public class MainActivity extends AppCompatActivity implements ActionBar.TabListener,MainItemRemove,MainFavRemove,MainFavAdd{
     public TabAdapter tabAdapter;
     public ViewPager viewPager;
     public dbManager db;
     public dbHandler dHandler;
-    public ArrayList<Tasks> task=new ArrayList<>();
+    public ArrayList<Tasks> taskFav=new ArrayList<>();
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
@@ -97,13 +63,13 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     private DatabaseReference databaseSections;
     public  ProgressDialog progressDialog;
     public DateTimeFormatter dateTimeFormatter= DateTimeFormat.forPattern("yyyy-MM-dd");
-    public ArrayList<ObserverInterface> mObservers;
-    private Tasks tasks;
+    @BindView(R.id.toolbar)Toolbar toolbar;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         progressDialog = new ProgressDialog(MainActivity.this,
                 R.style.AppTheme_Dark_Dialog);
@@ -111,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         uID = user.getUid();
-        tasks = new Tasks();
         fetchTasks();
         /*dHandler=new dbHandler(this);
         dHandler.getWritableDatabase();*/
@@ -129,22 +94,20 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         tabLayout.addTab(tabLayout.newTab().setText("All"));
         tabLayout.addTab(tabLayout.newTab().setText("Today"));
         tabLayout.addTab(tabLayout.newTab().setText("Tomorrow"));
-        tabLayout.addTab(tabLayout.newTab().setText("Week"));
+        tabLayout.addTab(tabLayout.newTab().setText("Favs"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
 
         viewPager = (ViewPager)findViewById(R.id.pager);
         viewPager.setOffscreenPageLimit(3);
-        tabAdapter = new TabAdapter(getSupportFragmentManager(),tabLayout.getTabCount(),uID,taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
+        viewPager.setPageTransformer(true,new PageTransformer());
+        tabAdapter = new TabAdapter(getSupportFragmentManager(),tabLayout.getTabCount(),uID,taskToday,taskTomorrow,taskThisWeek,taskNextWeek,taskFav);
         viewPager.setAdapter(tabAdapter);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
-                LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getApplicationContext());
-                Intent i = new Intent("REFRESH");
-                lbm.sendBroadcast(i);
             }
 
             @Override
@@ -190,6 +153,9 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                         for (DataSnapshot child : dataSnapshot.getChildren())
                         {
                             Tasks task = child.getValue(Tasks.class);
+                            if(task.isFavourite()){
+                                taskFav.add(task);
+                            }
                             switch (getSectionGroup(task.getEndDate())){
                                 case "1":
                                     taskToday.add(task);
@@ -336,26 +302,27 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
                 switch (gsGroup){
                     case "1":
-                        taskToday.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        taskToday.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskToday);
                         break;
                     case "2":
-                        taskTomorrow.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        taskTomorrow.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskTomorrow);
                         break;
                     case "3":
                         Log.e(TAG,"TASKK HIS WEEK ADD");
-                        taskThisWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        taskThisWeek.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskThisWeek);
+                        Log.e(TAG,"TASK THIS WEEK"+taskThisWeek.size());
                         break;
                     case "4":
                         Log.e(TAG,"TASKK NEXT WEEK ADD");
-                        taskNextWeek.add(new Tasks(id,header,content,imp,date,sectionGroup));
+                        taskNextWeek.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskNextWeek);
                         break;
                 }
 
-                databaseSections.child(uID).child(id).setValue(new Tasks(id,header,content,imp,date,sectionGroup));
+                databaseSections.child(uID).child(id).setValue(new Tasks(id,content,imp,date,sectionGroup));
             }
             if (resultCode == Activity.RESULT_CANCELED) {
 
@@ -392,26 +359,50 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    public void itemRemoved(String tag, int position) {
+    public void itemRemoved(Tasks task,String tag, int position) {
         switch (tag){
             case "TODAY":
+                if(task.isFavourite()){
+                    taskFav.remove(task);
+                }
                 taskToday.remove(position);
                 tabAdapter.updateData("1",taskToday);
                 break;
             case "TOMORROW":
+                if(task.isFavourite()){
+                    taskFav.remove(task);
+                }
                 taskTomorrow.remove(position);
                 tabAdapter.updateData("2",taskTomorrow);
                 break;
             case "THIS WEEK":
+                if(task.isFavourite()){
+                    taskFav.remove(task);
+                }
                 taskThisWeek.remove(position);
                 tabAdapter.updateData("3",taskThisWeek);
                 break;
             case "NEXT WEEK":
+                if(task.isFavourite()){
+                    taskFav.remove(task);
+                }
                 taskNextWeek.remove(position);
                 tabAdapter.updateData("4",taskNextWeek);
                 break;
             default:
                 break;
         }
+    }
+
+    @Override
+    public void favRemove(Tasks task) {
+        taskFav.remove(task);
+        tabAdapter.updateData("5",taskFav);
+    }
+
+    @Override
+    public void favAdd(Tasks fav) {
+        taskFav.add(fav);
+        tabAdapter.updateData("5",taskFav);
     }
 }

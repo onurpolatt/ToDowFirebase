@@ -11,6 +11,6 @@ import java.util.ArrayList;
  * Created by onurp on 17.09.2017.
  */
 
-interface FilterableSection {
+public interface ObserverSubject {
     void filter(String query);
 }

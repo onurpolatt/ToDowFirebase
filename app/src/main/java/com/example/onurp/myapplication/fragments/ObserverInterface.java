@@ -9,5 +9,9 @@ import java.util.ArrayList;
  */
 
 public interface ObserverInterface {
-    void onUserDataChanged(ArrayList<Tasks> fullname);
+    public void registerObserver(ObserverInterface observer);
+
+    public void removeObserver(ObserverInterface observer);
+
+    public void notifyObservers();
 }

@@ -72,8 +72,8 @@ public class dbManager{
 
         while (res.isAfterLast() == false) {
 
-          taskList.add(new Tasks(res.getInt(0),res.getString(1),res.getString(2),res.getString(3),
-                    res.getString(4),res.getInt(5)));
+          taskList.add(new Tasks(res.getInt(0),res.getString(1),res.getString(2),
+                    res.getString(3),res.getInt(4)));
 
             res.moveToNext();
         }
@@ -105,7 +105,6 @@ public class dbManager{
             SQLiteDatabase db = dbHelper.getWritableDatabase();
 
             ContentValues values = new ContentValues();
-            values.put(dbHandler.COLUMN_HEADER, tasks.getHeader());
             values.put(dbHandler.COLUMN_CONTENT, tasks.getContent());
             values.put(dbHandler.COLUMN_IMPLVL, tasks.getImportanceLevel());
             values.put(dbHandler.COLUMN_DATE, tasks.getEndDate());

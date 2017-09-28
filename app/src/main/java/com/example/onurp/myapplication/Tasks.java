@@ -17,37 +17,36 @@ import static android.content.ContentValues.TAG;
 
 public class Tasks implements Parcelable {
     public String content;
-    public String header;
     public String endDate;
     public String importanceLevel;
     public String sectionName;
     public Integer sectionGroup;
     public String idRow,idSection,sSectionGroup;
     public Integer intIdRow,intIdSection;
-    public boolean isRow;
+    public boolean isFavourite,isSelected;
 
     public Tasks(){
 
     }
 
-    public  Tasks  (Integer id,String header,String content,String importanceLevel,String endDate,Integer sectionGroup){
+    public  Tasks  (Integer id,String content,String importanceLevel,String endDate,Integer sectionGroup){
         this.intIdRow=id;
         this.content=content;
-        this.header=header;
         this.endDate=endDate;
         this.importanceLevel=importanceLevel;
         this.sectionGroup=sectionGroup;
-        this.isRow=true;
+        this.isFavourite=false;
+        this.isSelected=false;
     }
 
-    public  Tasks  (String id,String header,String content,String importanceLevel,String endDate,String sectionGroup){
+    public  Tasks  (String id,String content,String importanceLevel,String endDate,String sectionGroup){
         this.idRow=id;
         this.sSectionGroup=sectionGroup;
         this.content=content;
-        this.header=header;
         this.endDate=endDate;
         this.importanceLevel=importanceLevel;
-        this.isRow=true;
+        this.isFavourite=false;
+        this.isSelected=false;
     }
 
 
@@ -55,48 +54,18 @@ public class Tasks implements Parcelable {
     public  Tasks (Integer id,String sectionName){
         this.intIdSection=id;
         this.sectionName=sectionName;
-        this.isRow=false;
     }
 
-    public String getsSectionGroup() {
-        return sSectionGroup;
-    }
-
-    public void setsSectionGroup(String sSectionGroup) {
-        this.sSectionGroup = sSectionGroup;
-    }
-
-    public Integer getIntIdRow() {
-        return intIdRow;
-    }
-
-    public void setIntIdRow(Integer intIdRow) {
-        this.intIdRow = intIdRow;
-    }
-
-    public Integer getIntIdSection() {
-        return intIdSection;
-    }
-
-    public void setIntIdSection(Integer intIdSection) {
-        this.intIdSection = intIdSection;
-    }
 
     public String getIdRow() {
         return idRow;
     }
 
-    public void setIdRow(String idRow) {
-        this.idRow = idRow;
-    }
 
     public String getIdSection() {
         return idSection;
     }
 
-    public void setIdSection(String idSection) {
-        this.idSection = idSection;
-    }
 
     public String getSectionName() {
         return sectionName;
@@ -111,13 +80,6 @@ public class Tasks implements Parcelable {
         this.content = content;
     }
 
-    public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
-    }
 
     public String getEndDate() {
         return endDate;
@@ -135,8 +97,20 @@ public class Tasks implements Parcelable {
         this.importanceLevel = importanceLevel;
     }
 
-    public boolean isRow(){
-        return isRow;
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    public boolean isFavourite() {
+        return isFavourite;
+    }
+
+    public void setFavourite(boolean favourite) {
+        isFavourite = favourite;
     }
 
     public static String getSectionGroup(String date){
@@ -169,10 +143,9 @@ public class Tasks implements Parcelable {
 
         content=in.readString();
         endDate=in.readString();
-        header=in.readString();
         idRow=in.readString();
         importanceLevel=in.readString();
-        isRow=in.readInt() == 1;
+        isFavourite=in.readInt() == 1;
         sSectionGroup=in.readString();
     }
 
@@ -186,10 +159,9 @@ public class Tasks implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(content);
         dest.writeString(endDate);
-        dest.writeString(header);
         dest.writeString(idRow);
         dest.writeString(importanceLevel);
-        dest.writeInt(isRow ? 1 : 0);
+        dest.writeInt(isFavourite ? 1 : 0);
         dest.writeString(sSectionGroup);
     }
 

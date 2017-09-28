@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,55 +46,59 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
     public final static int TOMORROW = 1;
     public final static int THIS_WEEK = 2;
     public final static int NEXT_WEEK = 3;
+    public final static int FAVOURITE = 4;
     public Context context;
     private FragmentCommunication mCommunicator;
     private FragmentItemRemove mItemRemove;
+    private FavouriteItem favouriteItem;
     final int topic;
     boolean expanded = true;
     String title;
+    boolean isFav;
     ArrayList<Tasks> list=new ArrayList<>();
     int lastPosition = -1;
     ArrayList<Tasks> filteredList;
 
-   public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemRemove itemRemove) {
+   public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemRemove itemRemove,FavouriteItem favouriteItem) {
         super(new SectionParameters.Builder(R.layout.list_content)
                 .headerResourceId(R.layout.list_content_headers)
                 .build());
-
        this.topic = topic;
        mCommunicator=communication;
        mItemRemove=itemRemove;
        this.context = context;
-
+       this.favouriteItem=favouriteItem;
 
 
         switch (topic) {
             case TODAY:
                     this.title = "TODAY";
                     this.list = tasks;
-                this.filteredList = new ArrayList<>(list);
+                    this.filteredList = new ArrayList<>(list);
                     break;
             case TOMORROW:
                     this.title = "TOMORROW";
                     this.list = tasks;
-                this.filteredList = new ArrayList<>(list);
+                    this.filteredList = new ArrayList<>(list);
                     break;
             case THIS_WEEK:
                     this.title = "THIS WEEK";
                     this.list = tasks;
-                this.filteredList = new ArrayList<>(list);
+                    this.filteredList = new ArrayList<>(list);
                     break;
             case NEXT_WEEK:
                     this.title = "NEXT WEEK";
                     this.list = tasks;
-                this.filteredList = new ArrayList<>(list);
+                    this.filteredList = new ArrayList<>(list);
+                    break;
+            case FAVOURITE:
+                    this.title = "FAVOURİTE";
+                    this.list = tasks;
+                    this.filteredList = new ArrayList<>(list);
                     break;
             default:
                 break;
         }
-
-
-
     }
 
     @Override
@@ -104,8 +110,8 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         else {
             filteredList.clear();
             for (Tasks value : list) {
-                if (value.getHeader().toLowerCase().contains(query.toLowerCase())) {
-                    Log.e("ONEMLİ","BULUNAN VERİ"+value.getHeader());
+                if (value.getContent().toLowerCase().contains(query.toLowerCase())) {
+                    Log.e("ONEMLİ","BULUNAN VERİ"+value.getContent());
                     filteredList.add(value);
                 }
             }
@@ -118,11 +124,16 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
 
 
     public interface FragmentCommunication {
-        void respond(int position);
+        void respond(Tasks task,boolean isChecked);
     }
 
     public interface FragmentItemRemove {
-        void deleteItem(String id,String tag ,int position,int listPosition);
+        void deleteItem(Tasks task,String id,String tag ,int position,int listPosition);
+    }
+
+    public interface FavouriteItem {
+        void addFavItem(Tasks favTask,String id);
+        void deleteFavItem(int position,Tasks tasks,String id);
     }
 
     @Override
@@ -132,22 +143,27 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
 
     @Override
     public RecyclerView.ViewHolder getItemViewHolder(View view) {
-        return new ItemViewHolder(view,mItemRemove);
+        return new ItemViewHolder(view,mItemRemove,favouriteItem);
     }
 
     @Override
     public void onBindItemViewHolder(RecyclerView.ViewHolder holder, final int position) {
-       final ItemViewHolder h = (ItemViewHolder) holder;
+        final ItemViewHolder h = (ItemViewHolder) holder;
 
-        Tasks task=filteredList.get(position);
+        final Tasks task=filteredList.get(position);
 
+        isFav=task.isFavourite();
+        h.tImgFav.setImageResource(
+                isFav ? R.drawable.ic_favorite_black_24dp : R.drawable.ic_favorite_border_black_24dp
+        );
 
-        h.tHeader.setText(task.getHeader());
         h.tContent.setText(task.getContent());
         h.tDate.setText(task.getEndDate());
-
+        h.checkBox.setOnCheckedChangeListener(null);
+        h.checkBox.setChecked(task.isSelected());
         final String id = task.getIdRow();
         final String sGroup = task.sSectionGroup;
+
         h.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,7 +192,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         filteredList.remove(position);
-                        h.itemRemove.deleteItem(id,sGroup,h.getAdapterPosition(),position);
+                        h.itemRemove.deleteItem(task,id,sGroup,h.getAdapterPosition(),position);
                     }
                 });
 
@@ -188,14 +204,32 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
                 return true;
             }
         });
-        /*
-        if(h.getAdapterPosition() >lastPosition) {
 
-            Animation animation = AnimationUtils.loadAnimation(context,
-                    R.anim.up_from_bottom);
-            h.itemView.startAnimation(animation);
-            lastPosition = h.getAdapterPosition();
-        } */
+        h.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                task.setSelected(isChecked);
+            }
+        });
+
+        h.tImgFav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(task.isFavourite()){
+                    Log.e("ADDFAV","SILINEN FAV:"+isFav);
+                    task.setFavourite(!task.isFavourite());
+                    h.favouriteItem.deleteFavItem(position,task,id);
+                } else {
+                    Log.e("ADDFAV","EKLENİLEN FAV:"+isFav);
+                    task.setFavourite(!task.isFavourite());
+                    h.favouriteItem.addFavItem(task,id);
+                }
+                h.tImgFav.setImageResource(
+                        task.isFavourite ? R.drawable.ic_favorite_black_24dp : R.drawable.ic_favorite_border_black_24dp
+                );
+
+            }
+        });
     }
 
     @Override
@@ -211,12 +245,23 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
                 @Override
                 public void onClick(View v) {
                     expanded = !expanded;
+                    if(!expanded){
+                        for (int i=0;i<list.size();i++){
+                            list.get(i).setSelected(true);
+                            h.mComminication.respond(list.get(i),true);
+                        }
+                    } else {
+                        for (int i=0;i<list.size();i++){
+                            list.get(i).setSelected(false);
+                            h.mComminication.respond(list.get(i),false);
+                        }
+                    }
                     h.imgArrow.setImageResource(
                             expanded ? R.drawable.ic_keyboard_arrow_up_black_18dp : R.drawable.ic_keyboard_arrow_down_black_18dp
                     );
 
-                    Log.e("S","HEADER TIKLANDI "+h.getAdapterPosition());
-                    h.mComminication.respond(h.getAdapterPosition());
+                    Log.e("S","HEADER TIKLANDI "+list.size());
+
                 }
             });
 
@@ -228,7 +273,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         TextView sectionHeader;
         @BindView(R.id.imgArrow)ImageView imgArrow;
         public final View rootView;
-         FragmentCommunication mComminication;
+        FragmentCommunication mComminication;
         HeaderViewHolder(View view,FragmentCommunication Communicator) {
             super(view);
             rootView=view;
@@ -236,27 +281,28 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
             ButterKnife.bind(this,view);
         }
          @Override public void onClick(View v) {
-             mComminication.respond(getAdapterPosition());
+
          }
     }
 
 
 
     class ItemViewHolder extends RecyclerView.ViewHolder  implements View.OnLongClickListener{
-
-        @BindView(R.id.impLevel)
-        View impLevel;
-        @BindView(R.id.txtHeader)
-        TextView tHeader;
+        @BindView(R.id.checkbox)
+        CheckBox checkBox;
+        @BindView(R.id.imgFav)
+        ImageView tImgFav;
         @BindView(R.id.txtContent)
         TextView tContent;
         @BindView(R.id.endDate)
         TextView tDate;
         public final View rootView;
         FragmentItemRemove itemRemove;
-        ItemViewHolder(View view,FragmentItemRemove itemRemove) {
+        FavouriteItem favouriteItem;
+        ItemViewHolder(View view,FragmentItemRemove itemRemove,FavouriteItem favouriteItem) {
             super(view);
             rootView = view;
+            this.favouriteItem=favouriteItem;
             this.itemRemove=itemRemove;
             ButterKnife.bind(this, view);
         }

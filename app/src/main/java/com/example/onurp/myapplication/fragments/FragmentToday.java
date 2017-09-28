@@ -22,6 +22,9 @@ import android.widget.TextView;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
+import com.example.onurp.myapplication.interfaces.MainFavAdd;
+import com.example.onurp.myapplication.interfaces.MainFavRemove;
+import com.example.onurp.myapplication.interfaces.MainItemRemove;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -45,8 +48,9 @@ public class FragmentToday extends android.support.v4.app.Fragment {
     private SectionedRecyclerViewAdapter sectionAdapter;
     private DatabaseReference databaseSections;
     private String uID;
-
-    MyReceiver r;
+    MainFavRemove mainFavRemove;
+    MainFavAdd mainFavAdd;
+    MainItemRemove mainItemRemove;
 
     public void refresh() {
         Log.e(TAG,"REFRESH FRAGMENT TODAY");
@@ -57,13 +61,22 @@ public class FragmentToday extends android.support.v4.app.Fragment {
 
     }
 
-    public static FragmentToday newInstance(ArrayList<Tasks> today) {
+    public static FragmentToday newInstance(ArrayList<Tasks> today,String uID) {
         FragmentToday result = new FragmentToday();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("TODAY",today);
+        bundle.putString("ID",uID);
         Log.e(TAG,"TASKS NEW INSTANCE: "+today.size());
         result.setArguments(bundle);
         return result;
+    }
+
+    @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+        mainItemRemove = (MainItemRemove) context;
+        mainFavRemove = (MainFavRemove) context;
+        mainFavAdd = (MainFavAdd) context;
     }
 
     @Override
@@ -71,6 +84,7 @@ public class FragmentToday extends android.support.v4.app.Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         Bundle bundle = this.getArguments();
+        uID=bundle.getString("ID");
         taskToday = bundle.getParcelableArrayList("TODAY");
         //Log.e(TAG,"TASKS TODAY SİZE: "+taskToday.size());
     }
@@ -87,9 +101,8 @@ public class FragmentToday extends android.support.v4.app.Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
         sectionAdapter = new SectionedRecyclerViewAdapter();
-        uID = getArguments().getString("User ID");
 
-        sectionAdapter.addSection(new Sections(Sections.TODAY,taskToday,communication,getContext(),fragmentItemRemove));
+        sectionAdapter.addSection(new Sections(Sections.TODAY,taskToday,communication,getContext(),fragmentItemRemove,favouriteItem));
 
         recyclerView.setAdapter(sectionAdapter);
 
@@ -103,15 +116,11 @@ public class FragmentToday extends android.support.v4.app.Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        r = new FragmentToday.MyReceiver();
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(r,
-                new IntentFilter("REFRESH"));
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(r);
     }
 
     public void checkEmptyStatement(){
@@ -127,7 +136,12 @@ public class FragmentToday extends android.support.v4.app.Fragment {
 
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(int position) {
+        public void respond(Tasks task,boolean isChecked) {
+            if(isChecked){
+                task.setSelected(isChecked);
+            } else {
+                task.setSelected(isChecked);
+            }
             sectionAdapter.notifyDataSetChanged();
         }
 
@@ -135,14 +149,25 @@ public class FragmentToday extends android.support.v4.app.Fragment {
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
-        public void deleteItem(String id,String title,int position,int listPosition) {
+        public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
+            databaseSections.child(uID).child(id).setValue(null);
+            mainItemRemove.itemRemoved(task,title,listPosition);
             sectionAdapter.notifyItemRemoved(position);
         }
     };
-    private class MyReceiver extends BroadcastReceiver {
+
+    Sections.FavouriteItem favouriteItem = new Sections.FavouriteItem() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            FragmentToday.this.refresh();
+        public void addFavItem(Tasks favTask,String id) {
+            databaseSections.child(uID).child(id).child("isFavourite").setValue(true);
+            mainFavAdd.favAdd(favTask);
         }
-    }
+
+        @Override
+        public void deleteFavItem(int position,Tasks task,String id) {
+            databaseSections.child(uID).child(id).child("isFavourite").setValue(false);
+            mainFavRemove.favRemove(task);
+            sectionAdapter.notifyItemRemoved(position);
+        }
+    };
 }

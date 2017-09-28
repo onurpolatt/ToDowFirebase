@@ -30,8 +30,11 @@ import com.example.onurp.myapplication.MainActivity;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
+import com.example.onurp.myapplication.interfaces.MainFavAdd;
+import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
 import com.google.android.gms.common.data.DataBufferObserver;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -60,6 +63,8 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     @BindView(R.id.lvToDoList)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
     MainItemRemove mainItemRemove;
+    MainFavRemove mainFavRemove;
+    MainFavAdd mainFavAdd;
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
@@ -71,9 +76,6 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     private DatabaseReference databaseSections;
     private Unbinder unbinder;
     private String uID;
-    boolean yes = false;
-    boolean no =false;
-    MyReceiver r;
     private static FragmentAll INSTANCE = null;
 
     public void refresh() {
@@ -110,6 +112,8 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     public void onAttach(Context context){
         super.onAttach(context);
         mainItemRemove = (MainItemRemove) context;
+        mainFavRemove = (MainFavRemove) context;
+        mainFavAdd = (MainFavAdd) context;
     }
 
     @Override
@@ -140,16 +144,16 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
         //Log.e(TAG,"TASKS SİZE: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskThisWeek.size());
         if(!emptyLists.contains("TODAY")){
-            sectionAdapter.addSection(new Sections(TODAY,taskToday,communication,getContext(),fragmentItemRemove));
+            sectionAdapter.addSection(new Sections(TODAY,taskToday,communication,getContext(),fragmentItemRemove,favouriteItem));
         }
         if(!emptyLists.contains("TOMORROW")){
-            sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemRemove));
+            sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemRemove,favouriteItem));
         }
         if(!emptyLists.contains("THISW")){
-            sectionAdapter.addSection(new Sections(Sections.THIS_WEEK,taskThisWeek,communication,getContext(),fragmentItemRemove));
+            sectionAdapter.addSection(new Sections(Sections.THIS_WEEK,taskThisWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
         }
         if(!emptyLists.contains("NEXTW")){
-            sectionAdapter.addSection(new Sections(Sections.NEXT_WEEK,taskNextWeek,communication,getContext(),fragmentItemRemove));
+            sectionAdapter.addSection(new Sections(Sections.NEXT_WEEK,taskNextWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
         }
 
         recyclerView.setAdapter(sectionAdapter);
@@ -191,15 +195,11 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     @Override
     public void onResume() {
         super.onResume();
-        r = new MyReceiver ();
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(r,
-                new IntentFilter("REFRESH"));
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(r);
     }
 
     public void checkEmptyStatement(){
@@ -226,7 +226,12 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     }
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(int position) {
+        public void respond(Tasks task,boolean isChecked) {
+            if(isChecked){
+                task.setSelected(isChecked);
+            } else {
+                task.setSelected(isChecked);
+            }
            sectionAdapter.notifyDataSetChanged();
         }
 
@@ -234,19 +239,28 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
-        public void deleteItem(String id,String title,int position,int listPosition) {
+        public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
                 databaseSections.child(uID).child(id).setValue(null);
-                mainItemRemove.itemRemoved(title,listPosition);
+                mainItemRemove.itemRemoved(task,title,listPosition);
                 sectionAdapter.notifyItemRemoved(position);
         }
     };
 
-    private class MyReceiver extends BroadcastReceiver {
+
+    Sections.FavouriteItem favouriteItem = new Sections.FavouriteItem() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            FragmentAll.this.refresh();
+        public void addFavItem(Tasks favTask,String id) {
+            databaseSections.child(uID).child(id).child("isFavourite").setValue(true);
+            mainFavAdd.favAdd(favTask);
         }
-    }
+
+        @Override
+        public void deleteFavItem(int position,Tasks task,String id) {
+            databaseSections.child(uID).child(id).child("isFavourite").setValue(false);
+            mainFavRemove.favRemove(task);
+            sectionAdapter.notifyItemRemoved(position);
+        }
+    };
 
 
     @Override
