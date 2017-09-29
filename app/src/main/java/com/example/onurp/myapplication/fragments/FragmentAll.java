@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -42,15 +43,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 import java.util.Observable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import io.github.luizgrp.sectionedrecyclerviewadapter.Section;
-import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
-import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
+
 
 import static com.example.onurp.myapplication.Sections.TODAY;
 
@@ -62,6 +63,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     private static final String TAG = "FragmentAll";
     @BindView(R.id.lvToDoList)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
+    @BindView(R.id.fabBtn)FloatingActionButton fab;
     MainItemRemove mainItemRemove;
     MainFavRemove mainFavRemove;
     MainFavAdd mainFavAdd;
@@ -78,10 +80,6 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     private String uID;
     private static FragmentAll INSTANCE = null;
 
-    public void refresh() {
-        Log.e(TAG,"REFRESH FRAGMENTALL");
-        //sectionAdapter.notifyDataSetChanged();
-    }
 
     public FragmentAll() {
     }
@@ -132,6 +130,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_all,container,false);
         ButterKnife.bind(this,view);
+        fab.hide();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
         sectionAdapter = new SectionedRecyclerViewAdapter();
@@ -226,22 +225,58 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     }
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(Tasks task,boolean isChecked) {
-            if(isChecked){
-                task.setSelected(isChecked);
-            } else {
-                task.setSelected(isChecked);
+        public void respond(final ArrayList<Tasks> task, final Tasks oneTask, boolean isChecked, final int position) {
+            if(task != null){
+                    for (int i=0;i<task.size();i++)
+                    {
+                        Log.e(TAG,"TASKLAR"+task.get(i));
+                        task.get(i).setSelected(isChecked);
+                    }
+
+            } else if(oneTask != null){
+                    oneTask.setSelected(isChecked);
             }
-           sectionAdapter.notifyDataSetChanged();
+
+
+            fab.show();
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    for(int i=0;i<combinedLists.size();i++){
+                        if(combinedLists.get(i).isSelected()){
+                            switch (combinedLists.get(i).getsSectionGroup()){
+                                case "TODAY":
+                                    taskToday.remove(combinedLists.get(i));
+                                    break;
+                                case "TOMORROW":
+                                    taskTomorrow.remove(combinedLists.get(i));
+                                    break;
+                                case "THIS WEEK":
+                                    taskThisWeek.remove(combinedLists.get(i));
+                                    break;
+                                case "NEXT WEEK":
+                                    taskNextWeek.remove(combinedLists.get(i));
+                                    break;
+                            }
+                        }
+                    }
+                    mainItemRemove.itemRemoved(taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
+                }
+            });
+
+            fab.hide();
+            sectionAdapter.notifyDataSetChanged();
         }
 
     };
+
+
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
         public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
                 databaseSections.child(uID).child(id).setValue(null);
-                mainItemRemove.itemRemoved(task,title,listPosition);
+
                 sectionAdapter.notifyItemRemoved(position);
         }
     };

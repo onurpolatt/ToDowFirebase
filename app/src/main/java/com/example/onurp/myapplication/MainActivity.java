@@ -158,15 +158,19 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                             }
                             switch (getSectionGroup(task.getEndDate())){
                                 case "1":
+                                    task.setsSectionGroup("TODAY");
                                     taskToday.add(task);
                                     break;
                                 case "2":
+                                    task.setsSectionGroup("TOMORROW");
                                     taskTomorrow.add(task);
                                     break;
                                 case "3":
+                                    task.setsSectionGroup("THIS WEEK");
                                     taskThisWeek.add(task);
                                     break;
                                 case "4":
+                                    task.setsSectionGroup("NEXT WEEK");
                                     taskNextWeek.add(task);
                                     break;
                             }
@@ -293,7 +297,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             if(resultCode == Activity.RESULT_OK){
                 String sectionGroup=data.getStringExtra("sGroup");
                 String content=data.getStringExtra("content");
-                String header=data.getStringExtra("header");
                 String date=data.getStringExtra("date");
                 String imp=data.getStringExtra("imp");
                 String id=data.getStringExtra("id");
@@ -310,13 +313,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                         tabAdapter.updateData(gsGroup,taskTomorrow);
                         break;
                     case "3":
-                        Log.e(TAG,"TASKK HIS WEEK ADD");
                         taskThisWeek.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskThisWeek);
                         Log.e(TAG,"TASK THIS WEEK"+taskThisWeek.size());
                         break;
                     case "4":
-                        Log.e(TAG,"TASKK NEXT WEEK ADD");
                         taskNextWeek.add(new Tasks(id,content,imp,date,sectionGroup));
                         tabAdapter.updateData(gsGroup,taskNextWeek);
                         break;
@@ -359,38 +360,18 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    public void itemRemoved(Tasks task,String tag, int position) {
-        switch (tag){
-            case "TODAY":
-                if(task.isFavourite()){
-                    taskFav.remove(task);
-                }
-                taskToday.remove(position);
-                tabAdapter.updateData("1",taskToday);
-                break;
-            case "TOMORROW":
-                if(task.isFavourite()){
-                    taskFav.remove(task);
-                }
-                taskTomorrow.remove(position);
-                tabAdapter.updateData("2",taskTomorrow);
-                break;
-            case "THIS WEEK":
-                if(task.isFavourite()){
-                    taskFav.remove(task);
-                }
-                taskThisWeek.remove(position);
-                tabAdapter.updateData("3",taskThisWeek);
-                break;
-            case "NEXT WEEK":
-                if(task.isFavourite()){
-                    taskFav.remove(task);
-                }
-                taskNextWeek.remove(position);
-                tabAdapter.updateData("4",taskNextWeek);
-                break;
-            default:
-                break;
+    public void itemRemoved(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw) {
+        if(today != null){
+            tabAdapter.updateData("1",today);
+        }
+        if(tomorrow != null){
+            tabAdapter.updateData("2",tomorrow);
+        }
+        if(thisw != null){
+            tabAdapter.updateData("3",thisw);
+        }
+        if(nextw != null){
+            tabAdapter.updateData("4",nextw);
         }
     }
 

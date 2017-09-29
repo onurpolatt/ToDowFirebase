@@ -113,6 +113,14 @@ public class Tasks implements Parcelable {
         isFavourite = favourite;
     }
 
+    public String getsSectionGroup() {
+        return sSectionGroup;
+    }
+
+    public void setsSectionGroup(String sSectionGroup) {
+        this.sSectionGroup = sSectionGroup;
+    }
+
     public static String getSectionGroup(String date){
         String response="";
         DateTimeFormatter dateTimeFormatter= DateTimeFormat.forPattern("yyyy-MM-dd");

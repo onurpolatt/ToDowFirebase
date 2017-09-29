@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,10 +29,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
+
+import static com.example.onurp.myapplication.R.id.fab;
 
 /**
  * Created by onurp on 16.09.2017.
@@ -42,6 +46,7 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
     private static final String EMPTY_TEXT ="Favori Görev Yok";
     @BindView(R.id.recylerviewThisWeek)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
+    @BindView(R.id.fabBtn)FloatingActionButton fab;
     MainFavRemove mainFavRemove;
     MainItemRemove mainItemRemove;
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
@@ -94,6 +99,7 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_this_week,container,false);
         ButterKnife.bind(this,view);
+        fab.hide();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         sectionAdapter = new SectionedRecyclerViewAdapter();
         sectionAdapter.addSection(new Sections(Sections.FAVOURITE,taskThisWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
@@ -129,22 +135,34 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
 
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(Tasks task,boolean isChecked) {
-            if(isChecked){
-                task.setSelected(isChecked);
-            } else {
-                task.setSelected(isChecked);
+        public void respond(final ArrayList<Tasks> task,final Tasks oneTask,boolean isChecked,final int position) {
+            if(task != null){
+                for (ListIterator<Tasks> i = task.listIterator(); i.hasNext(); i.next())
+                {
+                    final Tasks element = i.next();
+                    element.setSelected(isChecked);
+                }
+
+            } else if(oneTask != null){
+                oneTask.setSelected(isChecked);
             }
+
+
+            fab.show();
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //mainItemRemove.itemRemoved(oneTask,oneTask.sSectionGroup,position);
+                }
+            });
             sectionAdapter.notifyDataSetChanged();
         }
-
     };
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
         @Override
         public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
             databaseSections.child(uID).child(id).setValue(null);
-            mainItemRemove.itemRemoved(task,title,listPosition);
             sectionAdapter.notifyItemRemoved(position);
         }
     };

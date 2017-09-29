@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,6 +30,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +47,7 @@ public class FragmentToday extends android.support.v4.app.Fragment {
     private static final String TAG = "FragmentAll";
     @BindView(R.id.recylerviewToday)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
+    @BindView(R.id.fabBtn)FloatingActionButton fab;
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     private SectionedRecyclerViewAdapter sectionAdapter;
     private DatabaseReference databaseSections;
@@ -98,6 +102,7 @@ public class FragmentToday extends android.support.v4.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_today,container,false);
         ButterKnife.bind(this,view);
+        fab.hide();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
         sectionAdapter = new SectionedRecyclerViewAdapter();
@@ -136,12 +141,35 @@ public class FragmentToday extends android.support.v4.app.Fragment {
 
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(Tasks task,boolean isChecked) {
-            if(isChecked){
-                task.setSelected(isChecked);
-            } else {
-                task.setSelected(isChecked);
+        public void respond(final ArrayList<Tasks> task, final Tasks oneTask, boolean isChecked, final int position) {
+            if(task != null){
+                for (int i=0;i<task.size();i++)
+                {
+                    Log.e(TAG,"TASKLAR"+task.get(i));
+                    task.get(i).setSelected(isChecked);
+                }
+
+            } else if(oneTask != null){
+                oneTask.setSelected(isChecked);
             }
+
+
+            fab.show();
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Iterator<Tasks> i = taskToday.iterator();
+                    while (i.hasNext()) {
+                        Tasks today = i.next();
+                        if(today.isSelected()){
+                            i.remove();
+                        }
+                    }
+                    mainItemRemove.itemRemoved(taskToday,null,null,null);
+                }
+            });
+
+            fab.hide();
             sectionAdapter.notifyDataSetChanged();
         }
 
@@ -151,7 +179,6 @@ public class FragmentToday extends android.support.v4.app.Fragment {
         @Override
         public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
             databaseSections.child(uID).child(id).setValue(null);
-            mainItemRemove.itemRemoved(task,title,listPosition);
             sectionAdapter.notifyItemRemoved(position);
         }
     };

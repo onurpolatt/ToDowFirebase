@@ -55,6 +55,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
     boolean expanded = true;
     String title;
     boolean isFav;
+    ArrayList<Integer> positions;
     ArrayList<Tasks> list=new ArrayList<>();
     int lastPosition = -1;
     ArrayList<Tasks> filteredList;
@@ -124,7 +125,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
 
 
     public interface FragmentCommunication {
-        void respond(Tasks task,boolean isChecked);
+        void respond(ArrayList<Tasks> task,Tasks oneTask,boolean isChecked,int position);
     }
 
     public interface FragmentItemRemove {
@@ -143,7 +144,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
 
     @Override
     public RecyclerView.ViewHolder getItemViewHolder(View view) {
-        return new ItemViewHolder(view,mItemRemove,favouriteItem);
+        return new ItemViewHolder(view,mItemRemove,favouriteItem,mCommunicator);
     }
 
     @Override
@@ -208,7 +209,13 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         h.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                task.setSelected(isChecked);
+                if(isChecked){
+                    task.setSelected(isChecked);
+                    h.mComminication.respond(null,list.get(position),true,position);
+                } else {
+                    task.setSelected(isChecked);
+                    h.mComminication.respond(null,list.get(position),false,position);
+                }
             }
         });
 
@@ -248,13 +255,13 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
                     if(!expanded){
                         for (int i=0;i<list.size();i++){
                             list.get(i).setSelected(true);
-                            h.mComminication.respond(list.get(i),true);
                         }
+                        h.mComminication.respond(list,null,true,0);
                     } else {
                         for (int i=0;i<list.size();i++){
                             list.get(i).setSelected(false);
-                            h.mComminication.respond(list.get(i),false);
                         }
+                        h.mComminication.respond(list,null,false,0);
                     }
                     h.imgArrow.setImageResource(
                             expanded ? R.drawable.ic_keyboard_arrow_up_black_18dp : R.drawable.ic_keyboard_arrow_down_black_18dp
@@ -299,11 +306,13 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         public final View rootView;
         FragmentItemRemove itemRemove;
         FavouriteItem favouriteItem;
-        ItemViewHolder(View view,FragmentItemRemove itemRemove,FavouriteItem favouriteItem) {
+        FragmentCommunication mComminication;
+        ItemViewHolder(View view,FragmentItemRemove itemRemove,FavouriteItem favouriteItem,FragmentCommunication communication) {
             super(view);
             rootView = view;
             this.favouriteItem=favouriteItem;
             this.itemRemove=itemRemove;
+            this.mComminication = communication;
             ButterKnife.bind(this, view);
         }
 
