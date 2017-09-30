@@ -247,29 +247,50 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
                             switch (combinedLists.get(i).getsSectionGroup()){
                                 case "TODAY":
                                     taskToday.remove(combinedLists.get(i));
+                                    databaseSections.child(uID).child(combinedLists.get(i).getIdRow()).setValue(null);
                                     break;
                                 case "TOMORROW":
                                     taskTomorrow.remove(combinedLists.get(i));
+                                    databaseSections.child(uID).child(combinedLists.get(i).getIdRow()).setValue(null);
                                     break;
                                 case "THIS WEEK":
                                     taskThisWeek.remove(combinedLists.get(i));
+                                    databaseSections.child(uID).child(combinedLists.get(i).getIdRow()).setValue(null);
                                     break;
                                 case "NEXT WEEK":
                                     taskNextWeek.remove(combinedLists.get(i));
+                                    databaseSections.child(uID).child(combinedLists.get(i).getIdRow()).setValue(null);
                                     break;
                             }
                         }
                     }
                     mainItemRemove.itemRemoved(taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
+                    removeFromDatabase();
+                    fab.hide();
                 }
             });
 
-            fab.hide();
             sectionAdapter.notifyDataSetChanged();
         }
 
     };
 
+    public void removeFromDatabase(){
+        databaseSections.child(uID).orderByChild("isSelected").equalTo("true").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot child : dataSnapshot.getChildren())
+                {
+                    child.getRef().setValue(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
 
     Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {

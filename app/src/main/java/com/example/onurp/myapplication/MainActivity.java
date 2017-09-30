@@ -173,6 +173,8 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                                     task.setsSectionGroup("NEXT WEEK");
                                     taskNextWeek.add(task);
                                     break;
+                                default:
+                                    break;
                             }
                         }
                         if(firstTime==null){
@@ -348,13 +350,16 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             Log.e(TAG,"COMPARE 1");
             response="2";
         }
-        else if(days >1 && days<7){
+        else if(days > 1 && days < 7){
             Log.e(TAG,"COMPARE 1-7");
             response="3";
         }
-        else{
+        else if(days > 7){
             Log.e(TAG,"COMPARE 7>");
             response="4";
+        }
+        else {
+            response="OT";
         }
         return response;
     }

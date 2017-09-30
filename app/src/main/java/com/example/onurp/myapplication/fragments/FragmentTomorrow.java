@@ -158,13 +158,15 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
                         Tasks tomorrow = i.next();
                         if(tomorrow.isSelected()){
                             i.remove();
+                            databaseSections.child(uID).child(tomorrow.getIdRow()).setValue(null);
                         }
                     }
                     mainItemRemove.itemRemoved(taskTomorrow,null,null,null);
+                    fab.hide();
                 }
             });
 
-            fab.hide();
+
             sectionAdapter.notifyDataSetChanged();
         }
 

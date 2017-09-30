@@ -163,13 +163,14 @@ public class FragmentToday extends android.support.v4.app.Fragment {
                         Tasks today = i.next();
                         if(today.isSelected()){
                             i.remove();
+                            databaseSections.child(uID).child(today.getIdRow()).setValue(null);
                         }
                     }
                     mainItemRemove.itemRemoved(taskToday,null,null,null);
+                    fab.hide();
                 }
             });
 
-            fab.hide();
             sectionAdapter.notifyDataSetChanged();
         }
 

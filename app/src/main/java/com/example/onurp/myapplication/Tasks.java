@@ -141,8 +141,11 @@ public class Tasks implements Parcelable {
         else if(days >1 && days<7){
             response="THIS WEEK";
         }
-        else{
+        else if(days > 7){
             response="NEXT WEEK";
+        }
+        else{
+            response="OVERTIME";
         }
         return response;
     }

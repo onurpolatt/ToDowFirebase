@@ -29,6 +29,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 
 import butterknife.BindView;
@@ -152,7 +153,16 @@ public class FragmentThisWeek extends android.support.v4.app.Fragment {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //mainItemRemove.itemRemoved(oneTask,oneTask.sSectionGroup,position);
+                    Iterator<Tasks> i = taskThisWeek.iterator();
+                    while (i.hasNext()) {
+                        Tasks fav = i.next();
+                        if(fav.isSelected()){
+                            i.remove();
+                            databaseSections.child(uID).child(fav.getIdRow()).setValue(null);
+                        }
+                    }
+                    mainItemRemove.itemRemoved(taskThisWeek,null,null,null);
+                    fab.hide();
                 }
             });
             sectionAdapter.notifyDataSetChanged();
