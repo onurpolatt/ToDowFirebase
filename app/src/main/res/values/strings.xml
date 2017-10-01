@@ -7,7 +7,6 @@
     <string name="item_today">Bugün</string>
     <string name="item_tomorrow">Yarın</string>
     <string name="item_all">Hepsi</string>
-    <string name="task_title">Görev Başlığı</string>
     <string name="task_content">Görev İçeriği</string>
     <string name="pick_date">Tarih ve Zaman Seç</string>
     <string name="no_task">Görev Mevcut Değil</string>
@@ -18,4 +17,10 @@
     <string name="button_signup">Hesap Oluşturun</string>
     <string name="text_signup">Hesap oluşturun</string>
     <string name="text_login">Giriş sayfasına gidin</string>
+    <string name="dialog_positive">Onayla</string>
+    <string name="dialog_negative">Kapat</string>
+    <string name="dialog_title">Düzenle</string>
+    <string name="dialog_date_title">Görev bitiş tarihi</string>
+    <item name="visible" type="id"/>
+    <item name="masked" type="id"/>
 </resources>

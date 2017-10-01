@@ -21,7 +21,7 @@ import butterknife.ButterKnife;
  * Created by onurp on 20.09.2017.
  */
 
-public class deleteDialog extends DialogFragment implements View.OnClickListener{
+public class DeleteDialog extends DialogFragment implements View.OnClickListener{
     @BindView(R.id.yesbtn)Button yesBtn;
     @BindView(R.id.nobtn)Button noBtn;
     Communicator communicator;

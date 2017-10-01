@@ -104,7 +104,7 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         sectionAdapter = new SectionedRecyclerViewAdapter();
         databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
-        sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemRemove,favouriteItem));
+        sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemUpdate,favouriteItem));
         recyclerView.setAdapter(sectionAdapter);
 
         checkEmptyStatement();
@@ -173,11 +173,12 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
     };
 
 
-    Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
+    Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
         @Override
-        public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
-            databaseSections.child(uID).child(id).setValue(null);
-            sectionAdapter.notifyItemRemoved(position);
+        public void updateItem(Tasks task) {
+            databaseSections.child(uID).child(task.getIdRow()).setValue(task);
+
+            sectionAdapter.notifyDataSetChanged();
         }
     };
 

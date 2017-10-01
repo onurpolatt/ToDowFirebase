@@ -1,38 +1,46 @@
 package com.example.onurp.myapplication;
 
-import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
+import android.support.annotation.NonNull;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.internal.MDTintHelper;
+import com.afollestad.materialdialogs.internal.ThemeSingleton;
 import com.example.onurp.myapplication.fragments.FragmentAll;
 import com.example.onurp.myapplication.fragments.ObserverInterface;
 import com.example.onurp.myapplication.interfaces.FilterableSection;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
-import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
 
 import static java.security.AccessController.getContext;
@@ -49,24 +57,25 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
     public final static int FAVOURITE = 4;
     public Context context;
     private FragmentCommunication mCommunicator;
-    private FragmentItemRemove mItemRemove;
+    private FragmentItemUpdate mItemUpdate;
     private FavouriteItem favouriteItem;
     final int topic;
     boolean expanded = true;
     String title;
     boolean isFav;
+    private Toast toast;
     ArrayList<Integer> positions;
     ArrayList<Tasks> list=new ArrayList<>();
     int lastPosition = -1;
     ArrayList<Tasks> filteredList;
 
-   public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemRemove itemRemove,FavouriteItem favouriteItem) {
+   public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemUpdate itemUpdate,FavouriteItem favouriteItem) {
         super(new SectionParameters.Builder(R.layout.list_content)
                 .headerResourceId(R.layout.list_content_headers)
                 .build());
        this.topic = topic;
        mCommunicator=communication;
-       mItemRemove=itemRemove;
+       mItemUpdate=itemUpdate;
        this.context = context;
        this.favouriteItem=favouriteItem;
 
@@ -128,8 +137,8 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         void respond(ArrayList<Tasks> task,Tasks oneTask,boolean isChecked,int position);
     }
 
-    public interface FragmentItemRemove {
-        void deleteItem(Tasks task,String id,String tag ,int position,int listPosition);
+    public interface FragmentItemUpdate {
+        void updateItem(Tasks task);
     }
 
     public interface FavouriteItem {
@@ -144,7 +153,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
 
     @Override
     public RecyclerView.ViewHolder getItemViewHolder(View view) {
-        return new ItemViewHolder(view,mItemRemove,favouriteItem,mCommunicator);
+        return new ItemViewHolder(view,mItemUpdate,favouriteItem,mCommunicator);
     }
 
     @Override
@@ -177,34 +186,114 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         h.rootView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                final EditText uContent;
                 Toast.makeText(context, "Uzun Tıklanılan item numarası "+position, Toast.LENGTH_LONG).show();
 
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-                alertDialog.setTitle("Görev Sil");
-                alertDialog.setMessage("Silmek istiyor musunuz? ");
-                alertDialog.setPositiveButton("NO", new DialogInterface.OnClickListener() {
+                final MaterialDialog dialog =
+                        new MaterialDialog.Builder(context)
+                                .title("Düzenle")
+                                .customView(R.layout.custom_dialog, true)
+                                .positiveText("Onayla")
+                                .negativeText("Kapat")
+                                .build();
+
+                h.rootView = dialog.getActionButton(DialogAction.POSITIVE);
+                uContent = dialog.getCustomView().findViewById(R.id.updateContent);
+                uContent.addTextChangedListener(
+                        new TextWatcher() {
+                            @Override
+                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                h.rootView.setEnabled(s.toString().trim().length() > 0);
+                            }
+
+                            @Override
+                            public void afterTextChanged(Editable s) {}
+                        });
+
+                final Calendar myCalendar = Calendar.getInstance();
+                final String myFormat = "yyyy-MM-dd HH:mm";
+                final SimpleDateFormat sdf = new SimpleDateFormat(myFormat);
+                final TextInputLayout textInputLayout = dialog.getCustomView().findViewById(R.id.dateEditTextLayout);
+                final EditText edittext= dialog.getCustomView().findViewById(R.id.updateDateTime);
+
+                final TimePickerDialog.OnTimeSetListener timePicker = new TimePickerDialog.OnTimeSetListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(context, "Silme işlemi iptal", Toast.LENGTH_LONG).show();
-                        dialog.cancel();
+                    public void onTimeSet(TimePicker timePicker, int i, int i1) {
+                        myCalendar.set(Calendar.HOUR_OF_DAY,i);
+                        myCalendar.set(Calendar.MINUTE,i1);
+                        Calendar c = Calendar.getInstance();
+                        if (myCalendar.getTimeInMillis() >= c.getTimeInMillis()) {
+                            edittext.setText(sdf.format(myCalendar.getTime()));
+                            textInputLayout.setErrorEnabled(false);
+                        } else {
+                            textInputLayout.setErrorEnabled(true);
+                            edittext.setText(null);
+                            textInputLayout.setError("Girilen zaman geçersizdir.");
+                        }
+
                     }
-                });
-                alertDialog.setNegativeButton("YES", new DialogInterface.OnClickListener() {
+                };
+
+                final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        filteredList.remove(position);
-                        h.itemRemove.deleteItem(task,id,sGroup,h.getAdapterPosition(),position);
+                    public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                          int dayOfMonth) {
+                        myCalendar.set(Calendar.YEAR, year);
+                        myCalendar.set(Calendar.MONTH, monthOfYear);
+                        myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                        int hour=myCalendar.get(Calendar.HOUR_OF_DAY);
+                        int minute=myCalendar.get(Calendar.MINUTE);
+                        new TimePickerDialog(context,timePicker,hour,minute, DateFormat.is24HourFormat(context)).show();
+                    }
+                };
+
+
+
+                edittext.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        DatePickerDialog datePickerDialog = new DatePickerDialog(context, date, myCalendar
+                                .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                                myCalendar.get(Calendar.DAY_OF_MONTH));
+                        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis()-1000);
+                        datePickerDialog.show();
                     }
                 });
 
-                AlertDialog dialog = alertDialog.create();
+                int widgetColor = ThemeSingleton.get().widgetColor;
+                MDTintHelper.setTint(
+                        uContent,
+                        widgetColor == 0 ? ContextCompat.getColor(context, R.color.accent) : widgetColor);
+
+
+                h.rootView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        filteredList.get(position).setContent(uContent.getText().toString());
+                        if(TextUtils.isEmpty(edittext.getText())){
+                            h.itemUpdate.updateItem(filteredList.get(position));
+                            dialog.dismiss();
+                        } else {
+                            filteredList.get(position).setEndDate(edittext.getText().toString());
+                            h.itemUpdate.updateItem(filteredList.get(position));
+                            dialog.dismiss();
+                        }
+                    }
+                });
+
                 dialog.show();
-
-
+                h.rootView.setEnabled(false);
 
                 return true;
             }
         });
+
+
 
         h.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -292,6 +381,14 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
          }
     }
 
+    private void showToast(String message) {
+        if (toast != null) {
+            toast.cancel();
+            toast = null;
+        }
+        toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
 
     class ItemViewHolder extends RecyclerView.ViewHolder  implements View.OnLongClickListener{
@@ -303,15 +400,15 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
         TextView tContent;
         @BindView(R.id.endDate)
         TextView tDate;
-        public final View rootView;
-        FragmentItemRemove itemRemove;
+        public  View rootView;
+        FragmentItemUpdate itemUpdate;
         FavouriteItem favouriteItem;
         FragmentCommunication mComminication;
-        ItemViewHolder(View view,FragmentItemRemove itemRemove,FavouriteItem favouriteItem,FragmentCommunication communication) {
+        ItemViewHolder(View view,FragmentItemUpdate itemUpdate,FavouriteItem favouriteItem,FragmentCommunication communication) {
             super(view);
             rootView = view;
             this.favouriteItem=favouriteItem;
-            this.itemRemove=itemRemove;
+            this.itemUpdate=itemUpdate;
             this.mComminication = communication;
             ButterKnife.bind(this, view);
         }

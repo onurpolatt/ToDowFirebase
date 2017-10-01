@@ -158,22 +158,27 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                             }
                             switch (getSectionGroup(task.getEndDate())){
                                 case "1":
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("TODAY");
                                     taskToday.add(task);
                                     break;
                                 case "2":
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("TOMORROW");
                                     taskTomorrow.add(task);
                                     break;
                                 case "3":
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("THIS WEEK");
                                     taskThisWeek.add(task);
                                     break;
                                 case "4":
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("NEXT WEEK");
                                     taskNextWeek.add(task);
                                     break;
                                 default:
+                                    databaseSections.child(uID).child(task.getIdRow()).removeValue();
                                     break;
                             }
                         }

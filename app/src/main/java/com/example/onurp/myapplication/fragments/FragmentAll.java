@@ -143,16 +143,16 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
         //Log.e(TAG,"TASKS SİZE: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskThisWeek.size());
         if(!emptyLists.contains("TODAY")){
-            sectionAdapter.addSection(new Sections(TODAY,taskToday,communication,getContext(),fragmentItemRemove,favouriteItem));
+            sectionAdapter.addSection(new Sections(TODAY,taskToday,communication,getContext(),fragmentItemUpdate,favouriteItem));
         }
         if(!emptyLists.contains("TOMORROW")){
-            sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemRemove,favouriteItem));
+            sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemUpdate,favouriteItem));
         }
         if(!emptyLists.contains("THISW")){
-            sectionAdapter.addSection(new Sections(Sections.THIS_WEEK,taskThisWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
+            sectionAdapter.addSection(new Sections(Sections.THIS_WEEK,taskThisWeek,communication,getContext(),fragmentItemUpdate,favouriteItem));
         }
         if(!emptyLists.contains("NEXTW")){
-            sectionAdapter.addSection(new Sections(Sections.NEXT_WEEK,taskNextWeek,communication,getContext(),fragmentItemRemove,favouriteItem));
+            sectionAdapter.addSection(new Sections(Sections.NEXT_WEEK,taskNextWeek,communication,getContext(),fragmentItemUpdate,favouriteItem));
         }
 
         recyclerView.setAdapter(sectionAdapter);
@@ -275,6 +275,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
     };
 
+
     public void removeFromDatabase(){
         databaseSections.child(uID).orderByChild("isSelected").equalTo("true").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -293,12 +294,12 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     }
 
 
-    Sections.FragmentItemRemove fragmentItemRemove=new Sections.FragmentItemRemove() {
+    Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
         @Override
-        public void deleteItem(Tasks task,String id,String title,int position,int listPosition) {
-                databaseSections.child(uID).child(id).setValue(null);
+        public void updateItem(Tasks task) {
+                databaseSections.child(uID).child(task.getIdRow()).setValue(task);
 
-                sectionAdapter.notifyItemRemoved(position);
+                sectionAdapter.notifyDataSetChanged();
         }
     };
 
