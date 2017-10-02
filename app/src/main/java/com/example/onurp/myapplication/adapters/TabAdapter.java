@@ -6,10 +6,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import com.example.onurp.myapplication.Tasks;
-import com.example.onurp.myapplication.fragments.FragmentAll;
-import com.example.onurp.myapplication.fragments.FragmentThisWeek;
-import com.example.onurp.myapplication.fragments.FragmentToday;
-import com.example.onurp.myapplication.fragments.FragmentTomorrow;
+import com.example.onurp.myapplication.fragments.tabs.FragmentAll;
+import com.example.onurp.myapplication.fragments.tabs.FragmentThisWeek;
+import com.example.onurp.myapplication.fragments.tabs.FragmentToday;
+import com.example.onurp.myapplication.fragments.tabs.FragmentTomorrow;
 
 import java.util.ArrayList;
 

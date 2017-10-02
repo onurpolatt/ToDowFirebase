@@ -3,7 +3,6 @@ package com.example.onurp.myapplication;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -27,23 +26,16 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.internal.MDTintHelper;
 import com.afollestad.materialdialogs.internal.ThemeSingleton;
-import com.example.onurp.myapplication.fragments.FragmentAll;
-import com.example.onurp.myapplication.fragments.ObserverInterface;
-import com.example.onurp.myapplication.interfaces.FilterableSection;
+import com.example.onurp.myapplication.fragments.tabs.FragmentAll;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
-
-import static java.security.AccessController.getContext;
 
 /**
  * Created by onurp on 16.09.2017.

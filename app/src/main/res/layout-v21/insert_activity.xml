@@ -60,41 +60,55 @@
                     android:gravity="center"
                     android:layout_margin="@dimen/items_margin_top">
 
-                    <ImageView
-                        android:id="@+id/imgEditTextContent"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginTop="20dp"
-                        android:src="@drawable/ic_mode_edit_black_24dp" />
 
-                    <EditText
-                        android:id="@+id/contentEditText"
-                        style="@style/AppTheme"
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/contentTextInput"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/viewBt"
-                        android:layout_marginLeft="@dimen/items_margin_left"
-                        android:layout_marginTop="@dimen/items_margin_top"
-                        android:layout_toRightOf="@+id/imgEditTextContent"
-                        android:hint="@string/task_content"
-                        android:textColor="@color/secondary_text" />
+                        android:layout_toRightOf="@+id/imgEditTextDate"
+                        android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_below="@+id/imgEditTextContent"
-                        android:layout_marginTop="20dp"
-                        android:id="@+id/imgİmportance"
-                        android:src="@drawable/ic_priority_high_black_24dp" />
+                        <EditText
+                            android:id="@+id/contentEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:hint="Görev içeriği"
+                            android:textColor="@color/secondary_text"
+                            android:textColorHint="@android:color/white" />
+                    </android.support.design.widget.TextInputLayout>
+
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/dateEditText"
+                        android:layout_below="@+id/contentTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_toRightOf="@+id/imgEditTextDate"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/etDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:clickable="true"
+                            android:focusable="false"
+                            android:hint="Görev bitiş tarihi"
+                            android:textColor="@color/secondary_text"
+                            android:textColorHint="@android:color/white" />
+                    </android.support.design.widget.TextInputLayout>
+
+
+
                     <RadioGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_toRightOf="@+id/imgİmportance"
                         android:id="@+id/radioGroup"
-                        android:layout_below="@+id/contentEditText"
+                        android:layout_below="@+id/dateEditText"
                         android:onClick="radioGroupListener"
                         android:layout_marginLeft="@dimen/items_margin_left">
+
                         <RadioButton
                             android:id="@+id/radioHigh"
                             style="@style/AppTheme"
@@ -128,31 +142,6 @@
                             android:layout_toRightOf="@+id/radioNormal"
                             android:text="Düşük" />
                     </RadioGroup>
-
-
-                    <Button
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/buttonSetDate"
-                        android:layout_below="@+id/radioGroup"
-                        android:layout_marginTop="@dimen/items_margin_top"
-                        android:background="@color/accent"
-                        android:text="@string/pick_date"
-                        android:textStyle="bold"
-                        android:onClick="pickDateTime"
-                        android:textColor="@color/icons"
-                        android:layout_centerHorizontal="true" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/txtDate"
-                        android:textStyle="bold"
-                        android:visibility="invisible"
-                        android:textColor="@color/secondary_text"
-                        android:layout_marginTop="@dimen/items_margin_top"
-                        android:layout_below="@id/buttonSetDate"
-                        android:layout_centerHorizontal="true"/>
-
                 </RelativeLayout>
             </LinearLayout>
         </LinearLayout>

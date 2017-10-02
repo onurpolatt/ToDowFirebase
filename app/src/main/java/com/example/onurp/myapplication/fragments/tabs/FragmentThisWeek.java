@@ -1,14 +1,9 @@
-package com.example.onurp.myapplication.fragments;
+package com.example.onurp.myapplication.fragments.tabs;
 
-import android.app.Fragment;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,7 +18,6 @@ import android.widget.TextView;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
-import com.example.onurp.myapplication.interfaces.MainFavAdd;
 import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
 import com.google.firebase.database.DatabaseReference;
@@ -35,43 +29,29 @@ import java.util.ListIterator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.Unbinder;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 
 /**
- * Created by onurp on 26.08.2017.
+ * Created by onurp on 16.09.2017.
  */
 
-public class FragmentTomorrow extends android.support.v4.app.Fragment {
-    private static final String TAG ="FragmentTomorrow" ;
-    private Unbinder unbinder;
-    @BindView(R.id.recylerviewTomorrow)RecyclerView recyclerView;
+public class FragmentThisWeek extends android.support.v4.app.Fragment {
+    private static final String TAG = "FragmentThisWeek";
+    private static final String EMPTY_TEXT ="Favori Görev Yok";
+    @BindView(R.id.recylerviewThisWeek)RecyclerView recyclerView;
     @BindView(R.id.empty_text)TextView emptyText;
     @BindView(R.id.fabBtn)FloatingActionButton fab;
-    public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
+    MainFavRemove mainFavRemove;
+    MainItemRemove mainItemRemove;
+    public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
     private SectionedRecyclerViewAdapter sectionAdapter;
     private DatabaseReference databaseSections;
     private String uID;
-    MainFavRemove mainFavRemove;
-    MainFavAdd mainFavAdd;
-    MainItemRemove mainItemRemove;
-    public void refresh() {
-        Log.e(TAG,"REFRESH FRAGMENTOMORROW");
-        sectionAdapter.notifyDataSetChanged();
-    }
 
-    public FragmentTomorrow(){
 
-    }
 
-    public static FragmentTomorrow newInstance(ArrayList<Tasks> tomorrow,String uID) {
-        FragmentTomorrow result = new FragmentTomorrow();
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("TOMORROW",tomorrow);
-        bundle.putString("ID",uID);
-        Log.e(TAG,"TASKS NEW INSTANCE: "+tomorrow.size());
-        result.setArguments(bundle);
-        return result;
+    public FragmentThisWeek(){
+
     }
 
     @Override
@@ -79,7 +59,17 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
         super.onAttach(context);
         mainItemRemove = (MainItemRemove) context;
         mainFavRemove = (MainFavRemove) context;
-        mainFavAdd = (MainFavAdd) context;
+    }
+
+
+    public static FragmentThisWeek newInstance(ArrayList<Tasks> thisw,String uID) {
+        FragmentThisWeek result = new FragmentThisWeek();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("THISW",thisw);
+        bundle.putString("ID",uID);
+        Log.e(TAG,"TASKS NEW INSTANCE: "+thisw.size());
+        result.setArguments(bundle);
+        return result;
     }
 
     @Override
@@ -87,9 +77,9 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         Bundle bundle = this.getArguments();
-        taskTomorrow = bundle.getParcelableArrayList("TOMORROW");
+        taskThisWeek = bundle.getParcelableArrayList("THISW");
         uID=bundle.getString("ID");
-        Log.e(TAG,"TASKS TODMORROW SİZE: "+taskTomorrow.size());
+        Log.e(TAG,"TASKS THIS WEEK SİZE: "+taskThisWeek.size());
     }
 
     @Override
@@ -97,16 +87,18 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
         MenuItem item = menu.findItem(R.id.action_search);
         item.setVisible(false);
     }
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.fragment_tomorrow,container,false);
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view=inflater.inflate(R.layout.fragment_this_week,container,false);
         ButterKnife.bind(this,view);
         fab.hide();
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         sectionAdapter = new SectionedRecyclerViewAdapter();
-        databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
-        sectionAdapter.addSection(new Sections(Sections.TOMORROW,taskTomorrow,communication,getContext(),fragmentItemUpdate,favouriteItem));
+        sectionAdapter.addSection(new Sections(Sections.FAVOURITE,taskThisWeek,communication,getContext(),fragmentItemUpdate,favouriteItem));
         recyclerView.setAdapter(sectionAdapter);
-
+        databaseSections = FirebaseDatabase.getInstance().getReference("tasks");
         checkEmptyStatement();
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -124,53 +116,65 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
     }
 
     public void checkEmptyStatement(){
-        if (taskTomorrow.isEmpty()) {
+        if (taskThisWeek.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyText.setVisibility(View.VISIBLE);
         }
         else {
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
+            emptyText.setText(EMPTY_TEXT);
         }
     }
 
     Sections.FragmentCommunication communication=new Sections.FragmentCommunication() {
         @Override
-        public void respond(final ArrayList<Tasks> task, final Tasks oneTask, boolean isChecked, final int position) {
+        public void respond(final ArrayList<Tasks> task,final Tasks oneTask,boolean isChecked,final int position) {
             if(task != null){
-                for (int i=0;i<task.size();i++)
+                for (ListIterator<Tasks> i = task.listIterator(); i.hasNext(); i.next())
                 {
-                    Log.e(TAG,"TASKLAR"+task.get(i));
-                    task.get(i).setSelected(isChecked);
+                    final Tasks element = i.next();
+                    element.setSelected(isChecked);
                 }
 
             } else if(oneTask != null){
                 oneTask.setSelected(isChecked);
             }
 
+            if(checkSelectedItem()){
+                fab.hide();
+            } else {
+                fab.show();
+            }
 
-            fab.show();
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Iterator<Tasks> i = taskTomorrow.iterator();
+                    Iterator<Tasks> i = taskThisWeek.iterator();
                     while (i.hasNext()) {
-                        Tasks tomorrow = i.next();
-                        if(tomorrow.isSelected()){
+                        Tasks fav = i.next();
+                        if(fav.isSelected()){
                             i.remove();
-                            databaseSections.child(uID).child(tomorrow.getIdRow()).setValue(null);
+                            databaseSections.child(uID).child(fav.getIdRow()).setValue(null);
                         }
                     }
-                    mainItemRemove.itemRemoved(taskTomorrow,null,null,null);
+                    mainItemRemove.itemRemoved(taskThisWeek,null,null,null);
                     fab.hide();
                 }
             });
-
-
             sectionAdapter.notifyDataSetChanged();
         }
-
     };
+
+    public boolean checkSelectedItem(){
+        boolean result = true;
+        for (Tasks task: taskThisWeek){
+            if(task.isSelected()){
+                result = false;
+            }
+        }
+        return result;
+    }
 
 
     Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
@@ -185,8 +189,7 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
     Sections.FavouriteItem favouriteItem = new Sections.FavouriteItem() {
         @Override
         public void addFavItem(Tasks favTask,String id) {
-            databaseSections.child(uID).child(id).child("isFavourite").setValue(true);
-            mainFavAdd.favAdd(favTask);
+
         }
 
         @Override
@@ -196,5 +199,6 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
             sectionAdapter.notifyItemRemoved(position);
         }
     };
+
 
 }

@@ -1,15 +1,9 @@
-package com.example.onurp.myapplication.fragments;
+package com.example.onurp.myapplication.fragments.tabs;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,21 +15,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.onurp.myapplication.MainActivity;
 import com.example.onurp.myapplication.R;
 import com.example.onurp.myapplication.Sections;
 import com.example.onurp.myapplication.Tasks;
 import com.example.onurp.myapplication.interfaces.MainFavAdd;
 import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
-import com.google.android.gms.common.data.DataBufferObserver;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -43,8 +30,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.ListIterator;
-import java.util.Observable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -237,8 +222,12 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
                     oneTask.setSelected(isChecked);
             }
 
+            if(checkSelectedItem()){
+                fab.hide();
+            } else {
+                fab.show();
+            }
 
-            fab.show();
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -275,6 +264,15 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
     };
 
+    public boolean checkSelectedItem(){
+        boolean result = true;
+        for (Tasks task: combinedLists){
+            if(task.isSelected()){
+                result = false;
+            }
+        }
+        return result;
+    }
 
     public void removeFromDatabase(){
         databaseSections.child(uID).orderByChild("isSelected").equalTo("true").addListenerForSingleValueEvent(new ValueEventListener() {

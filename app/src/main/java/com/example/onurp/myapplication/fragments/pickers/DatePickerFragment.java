@@ -1,4 +1,4 @@
-package com.example.onurp.myapplication.fragments;
+package com.example.onurp.myapplication.fragments.pickers;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -15,8 +15,11 @@ import java.util.Calendar;
  * Created by onurp on 1.10.2017.
  */
 
-public class DatePickerFragment extends DialogFragment
-        implements DatePickerDialog.OnDateSetListener {
+public class DatePickerFragment extends DialogFragment {
+
+    public DatePickerFragment(){
+
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -26,10 +29,6 @@ public class DatePickerFragment extends DialogFragment
         int day = c.get(Calendar.DAY_OF_MONTH);
 
         return new DatePickerDialog(getActivity(), (AddTaskMenu)getActivity(), year, month, day);
-    }
-
-    public void onDateSet(DatePicker view, int year, int month, int day) {
-
     }
 
 }

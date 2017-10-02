@@ -78,15 +78,9 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         user = auth.getCurrentUser();
         uID = user.getUid();
         fetchTasks();
-        /*dHandler=new dbHandler(this);
-        dHandler.getWritableDatabase();*/
-        //getTaskDataFromDb();
-        //checkEmptyStatement();
         Log.e(TAG,"TASKS ACTİVİTY: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskNextWeek.size());
 
     }
-
-
 
 
     public void setupTabs(){
@@ -158,23 +152,23 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                             }
                             switch (getSectionGroup(task.getEndDate())){
                                 case "1":
-                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("TODAY");
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     taskToday.add(task);
                                     break;
                                 case "2":
-                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("TOMORROW");
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     taskTomorrow.add(task);
                                     break;
                                 case "3":
-                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("THIS WEEK");
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     taskThisWeek.add(task);
                                     break;
                                 case "4":
-                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     task.setsSectionGroup("NEXT WEEK");
+                                    databaseSections.child(uID).child(task.getIdRow()).setValue(task);
                                     taskNextWeek.add(task);
                                     break;
                                 default:
@@ -198,63 +192,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         );
         return true;
     }
-/*
-    public void getTaskDataFromDb()
-    {
-        dbManager db=new dbManager(this);
-
-        db.open();
-        task.clear();
-        db.insertTasks("merhaba","a","1","2017-09-11",1);
-        db.insertTasks("merhaba","b","1","2017-09-11",1);
-        db.insertTasks("merhaba","c","1","2017-09-12",2);
-        db.insertTasks("merhaba","d","1","2017-09-15",3);
-        db.insertTasks("merhaba","e","1","2017-09-19",4);
-
-        task = db.getAllTasks();
-
-        sHeaders=db.getAllHeaders();
-
-        Collections.sort(task, new Comparator<Tasks>() {
-            public int compare(Tasks o1, Tasks o2) {
-                if (o1.getEndDate() == null || o2.getEndDate() == null)
-                    return 0;
-                return o1.getEndDate().compareTo(o2.getEndDate());
-            }
-        });
-
-        for(int i=0;i<task.size();i++){
-            System.out.println("TARİH: "+task.get(i).endDate+"CONTENT:"+task.get(i).content);
-            Log.d(TAG, task.toString());
-        }
-        count=0;
-        for(int i=0;i<sHeaders.size();i++){
-            for(int j=count;j<task.size();j++){
-                if(sHeaders.get(i).getIdSection().equals(task.get(j).getSectionGroup()) && sectionFirstAttempt==true){
-                    combinedList.add(new Tasks(sHeaders.get(i).idSection,sHeaders.get(i).sectionName));
-                    combinedList.add(new Tasks(task.get(j).header,task.get(j).content,task.get(j).importanceLevel,task.get(j).endDate,task.get(j).sectionGroup));
-                    sectionFirstAttempt=false;
-                    count++;
-                }else if(sHeaders.get(i).getIdSection().equals(task.get(j).getSectionGroup()) && sectionFirstAttempt==false){
-                    combinedList.add(new Tasks(task.get(j).header,task.get(j).content,task.get(j).importanceLevel,task.get(j).endDate,task.get(j).sectionGroup));
-                    count++;
-                }else{
-                    sectionFirstAttempt=true;
-                    break;
-                }
-            }
-        }
-
-        if(!(task.size()<1))
-        {
-
-            adapter.notifyDataSetChanged();
-        }
-    }
-
-*/
-
-
 
 
     @Override

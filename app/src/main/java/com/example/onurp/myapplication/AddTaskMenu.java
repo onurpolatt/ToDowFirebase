@@ -4,47 +4,41 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.icu.text.DateFormat;
-import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
+import android.text.TextUtils;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
+import com.example.onurp.myapplication.fragments.pickers.DatePickerFragment;
+import com.example.onurp.myapplication.fragments.pickers.TimePickerFragment;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
-import org.joda.time.Days;
-import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.w3c.dom.Text;
 
-import java.text.ParseException;
-import java.util.ArrayList;
+
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Calendar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,32 +46,32 @@ import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 
 
-
-import static android.webkit.ConsoleMessage.MessageLevel.LOG;
-import static com.example.onurp.myapplication.R.menu.item;
-
 /**
  * Created by onurp on 29.08.2017.
  */
 
 public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener,DatePickerDialog.OnDateSetListener{
+
     @BindView(R.id.contentEditText)EditText contentEditText;
-    @BindView(R.id.buttonSetDate)Button pickerButton;
+    @BindView(R.id.dateEditText)TextInputLayout dateEditText;
+    @BindView(R.id.etDate)EditText etDate;
+    @BindView(R.id.contentTextInput)TextInputLayout contentTextInput;
     @BindView(R.id.radioHigh)RadioButton highPriority;
     @BindView(R.id.radioNormal)RadioButton normalPriority;
     @BindView(R.id.radioLow)RadioButton lowPriority;
-    @BindView(R.id.txtDate)TextView showDate;
     @BindView(R.id.toolbar)Toolbar toolbar;
     @BindView(R.id.fab)FloatingActionButton fab;
     @BindView(R.id.radioGroup)RadioGroup radioGroup;
     @BindView(R.id.snackLayout)LinearLayout layout;
-    public int day,month,year,hour,minute;
+
+    private static final String myFormat = "yyyy-MM-dd HH:mm";
+    private static final SimpleDateFormat sdf = new SimpleDateFormat(myFormat);
+
     public Snackbar snackbar;
-    public String date="";
     public Date cDate;
-    public DateTimeFormatter dateTimeFormatter=DateTimeFormat.forPattern("yyyy-MM-dd");
     private DatabaseReference databaseSections;
     public Tasks task;
+    private Calendar calendar;
 
     private static final String TAG = "AddTaskMenu";
 
@@ -88,23 +82,17 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
         JodaTimeAndroid.init(this);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
+        calendar = Calendar.getInstance();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         databaseSections = FirebaseDatabase.getInstance().getReference("sections");
         task=new Tasks();
         cDate=new Date();
     }
 
-    @OnClick(R.id.buttonSetDate)
+    @OnClick(R.id.etDate)
     public void pickDateTime(){
-        java.util.Calendar calendar= java.util.Calendar.getInstance();
-        year= calendar.get(java.util.Calendar.YEAR);
-        month= calendar.get(java.util.Calendar.MONTH);
-        day= calendar.get(java.util.Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog=new DatePickerDialog(AddTaskMenu.this,AddTaskMenu.this,year,month,day);
-        datePickerDialog.setTitle("Tarih Seçiniz");
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis()-1000);
-        datePickerDialog.show();
+        DialogFragment newFragment = new DatePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
     @Override
@@ -158,52 +146,49 @@ public class AddTaskMenu extends AppCompatActivity implements TimePickerDialog.O
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        java.util.Calendar calendar=java.util.Calendar.getInstance();
-        java.util.Calendar c=java.util.Calendar.getInstance();
-        calendar.set(java.util.Calendar.HOUR_OF_DAY, hourOfDay);
-        calendar.set(java.util.Calendar.MINUTE, minute);
+        calendar.set(Calendar.HOUR_OF_DAY,hourOfDay);
+        calendar.set(Calendar.MINUTE,minute);
+        Calendar c = Calendar.getInstance();
+
         if (calendar.getTimeInMillis() >= c.getTimeInMillis()) {
-            Log.e(TAG,"DEĞERLER: " +calendar.getTimeInMillis()+":::"+c.getTimeInMillis());
-            date=date+" "+hourOfDay+":"+minute;
-            showDate.setVisibility(View.VISIBLE);
-            showDate.setText(date);
+            etDate.setText(sdf.format(calendar.getTime()));
+            dateEditText.setErrorEnabled(false);
         } else {
-            snackbar.make(layout,"Girilen zaman geçersizdir!",Snackbar.LENGTH_SHORT).show();
+            dateEditText.setErrorEnabled(true);
+            etDate.setText(null);
+            dateEditText.setError("Girilen zaman geçersizdir.");
         }
 
     }
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        date=year+"-"+(month+1)+"-"+dayOfMonth;
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-        java.util.Calendar calendar=java.util.Calendar.getInstance();
-        hour=calendar.get(java.util.Calendar.HOUR_OF_DAY);
-        minute=calendar.get(java.util.Calendar.MINUTE);
-
-        TimePickerDialog timePickerDialog=new TimePickerDialog(AddTaskMenu.this,AddTaskMenu.this,hour,minute, android.text.format.DateFormat.is24HourFormat(this));
-        timePickerDialog.setTitle("Saat Seçiniz");
-
-
-        timePickerDialog.show();
+        DialogFragment newFragment = new TimePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
     @OnClick(R.id.fab)
     public void submitForm(){
-        if( contentEditText.getText().toString().trim().equals("")
-                || showDate.getText().toString().trim().equals("")){
+        if( TextUtils.isEmpty(contentEditText.getText())
+                || TextUtils.isEmpty(etDate.getText())){
             snackbar.make(layout,"Alanları eksiksiz doldurunuz!"+Integer.toString(radioGroup.getCheckedRadioButtonId()),Snackbar.LENGTH_SHORT).show();
         }else{
             int radioButtonID = radioGroup.getCheckedRadioButtonId();
             View radioButton = radioGroup.findViewById(radioButtonID);
             int idx = radioGroup.indexOfChild(radioButton);
             Log.e(TAG,"CONTENT"+contentEditText.getText().toString());
+
             Intent returnIntent = new Intent();
-            returnIntent.putExtra("sGroup",Tasks.getSectionGroup(showDate.getText().toString()));
+            returnIntent.putExtra("sGroup",Tasks.getSectionGroup(etDate.getText().toString()));
             returnIntent.putExtra("content",contentEditText.getText().toString());
-            returnIntent.putExtra("date",showDate.getText().toString());
+            returnIntent.putExtra("date",etDate.getText().toString());
             returnIntent.putExtra("imp",Integer.toString(idx));
             returnIntent.putExtra("id",databaseSections.push().getKey());
+
             setResult(Activity.RESULT_OK,returnIntent);
             finish();
         }

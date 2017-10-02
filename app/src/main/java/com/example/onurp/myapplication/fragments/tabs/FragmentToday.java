@@ -1,14 +1,9 @@
-package com.example.onurp.myapplication.fragments;
+package com.example.onurp.myapplication.fragments.tabs;
 
-import android.app.Fragment;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,7 +26,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.ListIterator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -153,8 +147,12 @@ public class FragmentToday extends android.support.v4.app.Fragment {
                 oneTask.setSelected(isChecked);
             }
 
+            if(checkSelectedItem()){
+                fab.hide();
+            } else {
+                fab.show();
+            }
 
-            fab.show();
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -175,6 +173,16 @@ public class FragmentToday extends android.support.v4.app.Fragment {
         }
 
     };
+
+    public boolean checkSelectedItem(){
+        boolean result = true;
+        for (Tasks task: taskToday){
+            if(task.isSelected()){
+                result = false;
+            }
+        }
+        return result;
+    }
 
     Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
         @Override
