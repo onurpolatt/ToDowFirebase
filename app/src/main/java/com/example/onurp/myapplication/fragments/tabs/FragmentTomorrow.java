@@ -159,7 +159,7 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
                             databaseSections.child(uID).child(tomorrow.getIdRow()).setValue(null);
                         }
                     }
-                    mainItemRemove.itemRemoved(taskTomorrow,null,null,null);
+                    mainItemRemove.itemRemovedOrUpdate(taskTomorrow,null,null,null);
                     fab.hide();
                 }
             });
@@ -183,7 +183,7 @@ public class FragmentTomorrow extends android.support.v4.app.Fragment {
 
     Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
         @Override
-        public void updateItem(Tasks task) {
+        public void updateItem(Tasks task,int position,String prevSection) {
             databaseSections.child(uID).child(task.getIdRow()).setValue(task);
 
             sectionAdapter.notifyDataSetChanged();

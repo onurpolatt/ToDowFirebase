@@ -23,6 +23,7 @@ import com.example.onurp.myapplication.Tasks;
 import com.example.onurp.myapplication.interfaces.MainFavAdd;
 import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
+import com.example.onurp.myapplication.interfaces.MainItemUpdate;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -52,6 +53,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
     MainItemRemove mainItemRemove;
     MainFavRemove mainFavRemove;
     MainFavAdd mainFavAdd;
+    MainItemUpdate mainItemUpdate;
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
     public ArrayList<Tasks> taskThisWeek=new ArrayList<>();
@@ -97,6 +99,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
         mainItemRemove = (MainItemRemove) context;
         mainFavRemove = (MainFavRemove) context;
         mainFavAdd = (MainFavAdd) context;
+        mainItemUpdate = (MainItemUpdate) context;
     }
 
     @Override
@@ -142,7 +145,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
         recyclerView.setAdapter(sectionAdapter);
 
-        checkEmptyStatement();
+        checkEmptyCase();
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
@@ -186,7 +189,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
         super.onPause();
     }
 
-    public void checkEmptyStatement(){
+    public void checkEmptyCase(){
         if (taskToday.isEmpty() && taskTomorrow.isEmpty() && taskThisWeek.isEmpty() && taskNextWeek.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyText.setVisibility(View.VISIBLE);
@@ -253,7 +256,7 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
                             }
                         }
                     }
-                    mainItemRemove.itemRemoved(taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
+                    mainItemRemove.itemRemovedOrUpdate(taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
                     removeFromDatabase();
                     fab.hide();
                 }
@@ -294,10 +297,12 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
 
     Sections.FragmentItemUpdate fragmentItemUpdate=new Sections.FragmentItemUpdate() {
         @Override
-        public void updateItem(Tasks task) {
+        public void updateItem(Tasks task,int position,String prevSection) {
                 databaseSections.child(uID).child(task.getIdRow()).setValue(task);
-
-                sectionAdapter.notifyDataSetChanged();
+                removeFromSection(prevSection,task);
+                addItemToSection(task);
+                mainItemRemove.itemRemovedOrUpdate(taskToday,taskTomorrow,taskThisWeek,taskNextWeek);
+                sectionAdapter.notifyItemRemoved(position);
         }
     };
 
@@ -316,6 +321,40 @@ public class FragmentAll extends android.support.v4.app.Fragment implements Sear
             sectionAdapter.notifyItemRemoved(position);
         }
     };
+    public void removeFromSection(String prevSection,Tasks task){
+            switch (prevSection){
+                case "TODAY":
+                    taskToday.remove(task);
+                    break;
+                case "TOMORROW":
+                    taskTomorrow.remove(task);
+                    break;
+                case "THIS WEEK":
+                    taskThisWeek.remove(task);
+                    break;
+                case "NEXT WEEK":
+                    taskNextWeek.remove(task);
+                    break;
+            }
+    }
+
+    public void addItemToSection(Tasks task){
+        switch (task.getsSectionGroup()){
+            case "TODAY":
+                taskToday.add(task);
+                break;
+            case "TOMORROW":
+                taskTomorrow.add(task);
+                break;
+            case "THIS WEEK":
+                taskThisWeek.add(task);
+                break;
+            case "NEXT WEEK":
+                taskNextWeek.add(task);
+                break;
+        }
+    }
+
 
 
     @Override

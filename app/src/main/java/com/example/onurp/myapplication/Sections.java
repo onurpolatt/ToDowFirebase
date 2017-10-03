@@ -55,10 +55,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
     boolean expanded = true;
     String title;
     boolean isFav;
-    private Toast toast;
-    ArrayList<Integer> positions;
     ArrayList<Tasks> list=new ArrayList<>();
-    int lastPosition = -1;
     ArrayList<Tasks> filteredList;
 
    public Sections(int topic,ArrayList<Tasks> tasks,FragmentCommunication communication,Context context,FragmentItemUpdate itemUpdate,FavouriteItem favouriteItem) {
@@ -130,7 +127,7 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
     }
 
     public interface FragmentItemUpdate {
-        void updateItem(Tasks task);
+        void updateItem(Tasks task,int position,String prevSection);
     }
 
     public interface FavouriteItem {
@@ -266,13 +263,16 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
                 h.rootView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        String prevSection = filteredList.get(position).getsSectionGroup();
                         filteredList.get(position).setContent(uContent.getText().toString());
+
                         if(TextUtils.isEmpty(edittext.getText())){
-                            h.itemUpdate.updateItem(filteredList.get(position));
+                            h.itemUpdate.updateItem(filteredList.get(position),position,prevSection);
                             dialog.dismiss();
                         } else {
                             filteredList.get(position).setEndDate(edittext.getText().toString());
-                            h.itemUpdate.updateItem(filteredList.get(position));
+                            filteredList.get(position).setsSectionGroup(Tasks.getSectionGroup(edittext.getText().toString()));
+                            h.itemUpdate.updateItem(filteredList.get(position),position,prevSection);
                             dialog.dismiss();
                         }
                     }
@@ -371,15 +371,6 @@ public class Sections extends StatelessSection implements FragmentAll.Filterable
          @Override public void onClick(View v) {
 
          }
-    }
-
-    private void showToast(String message) {
-        if (toast != null) {
-            toast.cancel();
-            toast = null;
-        }
-        toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
-        toast.show();
     }
 
 

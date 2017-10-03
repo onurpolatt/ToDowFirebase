@@ -23,6 +23,7 @@ import com.example.onurp.myapplication.fragments.ObserverInterface;
 import com.example.onurp.myapplication.interfaces.MainFavAdd;
 import com.example.onurp.myapplication.interfaces.MainFavRemove;
 import com.example.onurp.myapplication.interfaces.MainItemRemove;
+import com.example.onurp.myapplication.interfaces.MainItemUpdate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -45,11 +46,9 @@ import butterknife.ButterKnife;
  * Created by onurp on 17.08.2017.
  */
 
-public class MainActivity extends AppCompatActivity implements ActionBar.TabListener,MainItemRemove,MainFavRemove,MainFavAdd{
+public class MainActivity extends AppCompatActivity implements ActionBar.TabListener,MainItemRemove,MainFavRemove,MainFavAdd,MainItemUpdate{
     public TabAdapter tabAdapter;
     public ViewPager viewPager;
-    public dbManager db;
-    public dbHandler dHandler;
     public ArrayList<Tasks> taskFav=new ArrayList<>();
     public ArrayList<Tasks> taskToday=new ArrayList<>();
     public ArrayList<Tasks> taskTomorrow=new ArrayList<>();
@@ -79,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         uID = user.getUid();
         fetchTasks();
         Log.e(TAG,"TASKS ACTİVİTY: "+taskToday.size()+"---"+taskTomorrow.size()+"---"+taskNextWeek.size());
-
     }
 
 
@@ -307,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    public void itemRemoved(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw) {
+    public void itemRemovedOrUpdate(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw) {
         if(today != null){
             tabAdapter.updateData("1",today);
         }
@@ -332,5 +330,10 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     public void favAdd(Tasks fav) {
         taskFav.add(fav);
         tabAdapter.updateData("5",taskFav);
+    }
+
+    @Override
+    public void itemUpdate(Tasks task) {
+        //fetchTasks();
     }
 }

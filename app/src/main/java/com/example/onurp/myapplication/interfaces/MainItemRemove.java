@@ -9,5 +9,5 @@ import java.util.ArrayList;
  */
 
 public interface MainItemRemove {
-    public void itemRemoved(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw);
+    public void itemRemovedOrUpdate(ArrayList<Tasks> today,ArrayList<Tasks> tomorrow,ArrayList<Tasks> thisw,ArrayList<Tasks> nextw);
 }
